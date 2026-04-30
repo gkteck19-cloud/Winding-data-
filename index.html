@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Winding Diary Pro - Maa Bhagawati Electrical</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Mukta:wght@400;700&display=swap');
+        body { font-family: 'Mukta', sans-serif; }
+        .form-input { @apply w-full p-2.5 border-2 border-gray-200 rounded-lg outline-none focus:border-blue-500 transition-all; }
+    </style>
+</head>
+<body class="bg-gray-100 p-2 sm:p-4 pb-20">
+
+    <div class="max-w-2xl mx-auto bg-white rounded-2xl shadow-xl overflow-hidden border-t-8 border-blue-600">
+        <div class="bg-blue-600 p-4 text-white flex justify-between items-center shadow-md">
+            <div>
+                <h1 class="text-xl font-bold uppercase">Winding Master</h1>
+                <p class="text-[10px] opacity-80">Maa Bhagawati Electrical, Sagona</p>
+            </div>
+            <div class="flex gap-2">
+                <button onclick="exportData()" class="bg-white text-blue-600 text-xs px-3 py-1.5 rounded-lg font-bold shadow-sm">Backup 💾</button>
+                <button onclick="document.getElementById('importFile').click()" class="bg-blue-800 text-white text-xs px-3 py-1.5 rounded-lg font-bold shadow-sm">Import 📤</button>
+                <input type="file" id="importFile" class="hidden" onchange="importData(event)">
+            </div>
+        </div>
+
+        <div class="p-4 sm:p-6">
+            <input type="hidden" id="editId">
+            
+            <div class="grid grid-cols-2 gap-4">
+                <div class="col-span-2">
+                    <label class="block text-sm font-bold text-gray-700 mb-1">उपकरण का नाम (Item Name)</label>
+                    <input type="text" id="itemName" placeholder="जैसे: Crompton 1HP Mono" class="form-input">
+                </div>
+
+                <input type="text" id="idSize" placeholder="Inner Dia (ID)" class="form-input">
+                <input type="text" id="odSize" placeholder="Outer Dia (OD)" class="form-input">
+                <input type="text" id="stamping" placeholder="Stamping Size" class="form-input">
+                <input type="number" id="slots" placeholder="Total Slots" class="form-input">
+                <input type="text" id="pitch" placeholder="Pitch (जैसे 1-8)" class="form-input">
+                <select id="wireType" class="form-input bg-white font-bold">
+                    <option value="Copper">Copper (तांबा)</option>
+                    <option value="Aluminum">Aluminum (एल्युमिनियम)</option>
+                </select>
+
+                <div class="col-span-2 bg-blue-50 p-3 rounded-xl border border-blue-100 grid grid-cols-2 gap-3 shadow-inner">
+                    <p class="col-span-2 text-blue-700 font-bold text-sm border-b border-blue-200">Running Coil (रनिंग)</p>
+                    <input type="text" id="rSwg" placeholder="SWG (गेज)" class="p-2 border rounded-lg outline-none">
+                    <input type="number" id="rTurns" placeholder="Turns (टर्न्स)" class="p-2 border rounded-lg outline-none">
+                    <input type="text" id="rWeight" placeholder="वजन (Weight g/kg)" class="p-2 border border-blue-300 rounded-lg outline-none font-bold text-blue-800">
+                    <input type="text" id="rLength" placeholder="Coil Length" class="p-2 border rounded-lg outline-none">
+                </div>
+
+                <div class="col-span-2 bg-green-50 p-3 rounded-xl border border-green-100 grid grid-cols-2 gap-3 shadow-inner">
+                    <p class="col-span-2 text-green-700 font-bold text-sm border-b border-green-200">Starting Coil (स्टार्टिंग)</p>
+                    <input type="text" id="sSwg" placeholder="SWG (गेज)" class="p-2 border rounded-lg outline-none">
+                    <input type="number" id="sTurns" placeholder="Turns (टर्न्स)" class="p-2 border rounded-lg outline-none">
+                    <input type="text" id="sWeight" placeholder="वजन (Weight g/kg)" class="p-2 border border-green-300 rounded-lg outline-none font-bold text-green-800">
+                    <input type="text" id="sLength" placeholder="Coil Length" class="p-2 border rounded-lg outline-none">
+                </div>
+
+                <div class="col-span-2">
+                    <label class="block text-xs font-bold text-gray-500 mb-1">📷 फोटो (Optional)</label>
+                    <input type="file" id="photoFile" accept="image/*" class="w-full text-xs text-gray-500">
+                </div>
+            </div>
+
+            <div class="flex gap-3 mt-8">
+                <button onclick="saveData()" id="saveBtn" class="flex-grow bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 rounded-xl shadow-lg transition active:scale-95">डेटा सेव करें</button>
+                <button onclick="resetForm()" id="cancelBtn" class="hidden bg-gray-500 text-white px-6 py-4 rounded-xl font-bold">रद्द करें</button>
+            </div>
+
+            <div class="mt-10 mb-6 bg-white border-2 border-gray-200 rounded-full flex items-center px-4">
+                <span class="text-gray-400 mr-2">🔍</span>
+                <input type="text" id="searchInput" onkeyup="searchData()" placeholder="सर्च करें..." class="w-full p-3 bg-transparent outline-none">
+            </div>
+
+            <div id="results" class="space-y-4"></div>
+        </div>
+    </div>
+
+    <script>
+        let db;
+        let currentImage = "";
+        
+        // Version Updated to 6 for Weight Column
+        const request = indexedDB.open("WindingProDB_New", 6);
+
+        request.onupgradeneeded = (e) => {
+            db = e.target.result;
+            if (!db.objectStoreNames.contains("records")) {
+                db.createObjectStore("records", { keyPath: "id", autoIncrement: true });
+            }
+        };
+
+        request.onsuccess = (e) => {
+            db = e.target.result;
+            searchData();
+        };
+
+        const toBase64 = file => new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = () => resolve(reader.result);
+            reader.onerror = error => reject(error);
+        });
+
+        window.saveData = async () => {
+            const id = document.getElementById('editId').value;
+            const name = document.getElementById('itemName').value.trim();
+            if(!name) { alert("नाम ज़रूर लिखें!"); return; }
+
+            const file = document.getElementById('photoFile').files[0];
+            let imageBase64 = currentImage; 
+            if (file) imageBase64 = await toBase64(file);
+
+            const record = {
+                name,
+                idSize: document.getElementById('idSize').value,
+                odSize: document.getElementById('odSize').value,
+                stamping: document.getElementById('stamping').value,
+                slots: document.getElementById('slots').value,
+                pitch: document.getElementById('pitch').value,
+                wireType: document.getElementById('wireType').value,
+                rSwg: document.getElementById('rSwg').value,
+                rTurns: document.getElementById('rTurns').value,
+                rWeight: document.getElementById('rWeight').value,
+                rLength: document.getElementById('rLength').value,
+                sSwg: document.getElementById('sSwg').value,
+                sTurns: document.getElementById('sTurns').value,
+                sWeight: document.getElementById('sWeight').value,
+                sLength: document.getElementById('sLength').value,
+                img: imageBase64,
+                date: new Date().toLocaleString('hi-IN')
+            };
+
+            const tx = db.transaction("records", "readwrite");
+            const store = tx.objectStore("records");
+            
+            let query = id ? store.put({...record, id: parseInt(id)}) : store.add(record);
+
+            query.onsuccess = () => {
+                alert("सुरक्षित हुआ!");
+                resetForm();
+                searchData();
+            };
+        };
+
+        window.editData = (id) => {
+            const tx = db.transaction("records", "readonly");
+            tx.objectStore("records").get(id).onsuccess = (e) => {
+                const d = e.target.result;
+                document.getElementById('editId').value = d.id;
+                document.getElementById('itemName').value = d.name;
+                document.getElementById('idSize').value = d.idSize;
+                document.getElementById('odSize').value = d.odSize;
+                document.getElementById('stamping').value = d.stamping;
+                document.getElementById('slots').value = d.slots;
+                document.getElementById('pitch').value = d.pitch;
+                document.getElementById('wireType').value = d.wireType;
+                document.getElementById('rSwg').value = d.rSwg;
+                document.getElementById('rTurns').value = d.rTurns;
+                document.getElementById('rWeight').value = d.rWeight || "";
+                document.getElementById('rLength').value = d.rLength;
+                document.getElementById('sSwg').value = d.sSwg;
+                document.getElementById('sTurns').value = d.sTurns;
+                document.getElementById('sWeight').value = d.sWeight || "";
+                document.getElementById('sLength').value = d.sLength;
+                currentImage = d.img || "";
+                
+                document.getElementById('saveBtn').innerText = "अपडेट करें";
+                document.getElementById('cancelBtn').classList.remove('hidden');
+                window.scrollTo({top: 0, behavior: 'smooth'});
+            };
+        };
+
+        window.resetForm = () => {
+            document.getElementById('editId').value = "";
+            document.querySelectorAll('input').forEach(i => i.type !== 'hidden' && i.type !== 'file' && (i.value = ""));
+            document.getElementById('photoFile').value = "";
+            document.getElementById('saveBtn').innerText = "डेटा सेव करें";
+            document.getElementById('cancelBtn').classList.add('hidden');
+            currentImage = "";
+        };
+
+        window.searchData = () => {
+            if(!db) return;
+            const term = document.getElementById('searchInput').value.toLowerCase();
+            const tx = db.transaction("records", "readonly");
+            tx.objectStore("records").getAll().onsuccess = (e) => {
+                const resultsDiv = document.getElementById('results');
+                resultsDiv.innerHTML = "";
+                e.target.result.reverse().forEach(d => {
+                    if(d.name.toLowerCase().includes(term)) {
+                        resultsDiv.innerHTML += `
+                            <div class="bg-white border-2 border-gray-100 rounded-2xl p-4 shadow-sm mb-4">
+                                <div class="flex justify-between mb-2">
+                                    <h3 class="font-bold text-blue-700 uppercase">${d.name}</h3>
+                                    <div class="flex gap-4">
+                                        <button onclick="editData(${d.id})" class="text-blue-500">✏️</button>
+                                        <button onclick="deleteData(${d.id})" class="text-red-400">❌</button>
+                                    </div>
+                                </div>
+                                <div class="grid grid-cols-2 text-[11px] text-gray-500 gap-y-1 mb-2 border-b pb-1">
+                                    <p>ID: ${d.idSize} | OD: ${d.odSize} | Slot: ${d.slots}</p>
+                                    <p>Stamp: ${d.stamping} | Type: ${d.wireType}</p>
+                                </div>
+                                <div class="grid grid-cols-2 gap-2 text-[11px]">
+                                    <div class="bg-blue-50 p-2 rounded-lg border border-blue-100">
+                                        <p class="font-bold text-blue-800 border-b mb-1">RUNNING</p>
+                                        <p>SWG: ${d.rSwg} | T: ${d.rTurns}</p>
+                                        <p class="text-blue-900 font-bold">Weight: ${d.rWeight || 'N/A'}</p>
+                                        <p>Len: ${d.rLength}</p>
+                                    </div>
+                                    <div class="bg-green-50 p-2 rounded-lg border border-green-100">
+                                        <p class="font-bold text-green-800 border-b mb-1">STARTING</p>
+                                        <p>SWG: ${d.sSwg} | T: ${d.sTurns}</p>
+                                        <p class="text-green-900 font-bold">Weight: ${d.sWeight || 'N/A'}</p>
+                                        <p>Len: ${d.sLength}</p>
+                                    </div>
+                                </div>
+                                ${d.img ? `<img src="${d.img}" class="mt-3 w-full h-44 object-cover rounded-xl border">` : ''}
+                            </div>`;
+                    }
+                });
+            };
+        };
+
+        window.deleteData = (id) => {
+            if(confirm("डिलीट करें?")) {
+                db.transaction("records", "readwrite").objectStore("records").delete(id).onsuccess = () => searchData();
+            }
+        };
+
+        window.exportData = () => {
+            db.transaction("records", "readonly").objectStore("records").getAll().onsuccess = (e) => {
+                const blob = new Blob([JSON.stringify(e.target.result)], { type: "application/json" });
+                const a = document.createElement('a');
+                a.href = URL.createObjectURL(blob);
+                a.download = `Winding_Backup_${new Date().toLocaleDateString()}.json`;
+                a.click();
+            };
+        };
+
+        window.importData = (event) => {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const data = JSON.parse(e.target.result);
+                const tx = db.transaction("records", "readwrite");
+                data.forEach(item => { delete item.id; tx.objectStore("records").add(item); });
+                tx.oncomplete = () => { alert("इम्पोर्ट सफल!"); searchData(); };
+            };
+            reader.readAsText(event.target.files[0]);
+        };
+    </script>
+</body>
+</html>
