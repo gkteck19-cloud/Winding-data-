@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Winding Diary Pro - Maa Bhagawati Electrical</title>
+    <title>Winding Diary Pro - Sync Version</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Mukta:wght@400;700&display=swap');
@@ -13,15 +13,15 @@
 </head>
 <body class="bg-gray-100 p-2 sm:p-4 pb-20">
 
-    <div class="max-w-2xl mx-auto bg-white rounded-2xl shadow-xl overflow-hidden border-t-8 border-blue-600">
-        <div class="bg-blue-600 p-4 text-white flex justify-between items-center shadow-md">
+    <div class="max-w-2xl mx-auto bg-white rounded-2xl shadow-xl overflow-hidden border-t-8 border-orange-600">
+        <div class="bg-orange-600 p-4 text-white flex justify-between items-center shadow-md">
             <div>
-                <h1 class="text-xl font-bold uppercase">Winding Master</h1>
+                <h1 class="text-xl font-bold uppercase">Winding Master Sync</h1>
                 <p class="text-[10px] opacity-80">Maa Bhagawati Electrical, Sagona</p>
             </div>
             <div class="flex gap-2">
-                <button onclick="exportData()" class="bg-white text-blue-600 text-xs px-3 py-1.5 rounded-lg font-bold shadow-sm">Backup 💾</button>
-                <button onclick="document.getElementById('importFile').click()" class="bg-blue-800 text-white text-xs px-3 py-1.5 rounded-lg font-bold shadow-sm">Import 📤</button>
+                <button onclick="exportData()" class="bg-white text-orange-600 text-xs px-3 py-1.5 rounded-lg font-bold">Backup 💾</button>
+                <button onclick="document.getElementById('importFile').click()" class="bg-orange-800 text-white text-xs px-3 py-1.5 rounded-lg font-bold">Import 📤</button>
                 <input type="file" id="importFile" class="hidden" onchange="importData(event)">
             </div>
         </div>
@@ -45,30 +45,29 @@
                     <option value="Aluminum">Aluminum (एल्युमिनियम)</option>
                 </select>
 
-                <div class="col-span-2 bg-blue-50 p-3 rounded-xl border border-blue-100 grid grid-cols-2 gap-3 shadow-inner">
-                    <p class="col-span-2 text-blue-700 font-bold text-sm border-b border-blue-200">Running Coil (रनिंग)</p>
-                    <input type="text" id="rSwg" placeholder="SWG (गेज)" class="p-2 border rounded-lg outline-none">
-                    <input type="number" id="rTurns" placeholder="Turns (टर्न्स)" class="p-2 border rounded-lg outline-none">
-                    <input type="text" id="rWeight" placeholder="वजन (Weight g/kg)" class="p-2 border border-blue-300 rounded-lg outline-none font-bold text-blue-800">
-                    <input type="text" id="rLength" placeholder="Coil Length" class="p-2 border rounded-lg outline-none">
+                <div class="col-span-2 bg-blue-50 p-3 rounded-xl border border-blue-100 grid grid-cols-2 gap-3">
+                    <p class="col-span-2 text-blue-700 font-bold text-sm border-b">Running Coil</p>
+                    <input type="text" id="rSwg" placeholder="SWG" class="p-2 border rounded-lg outline-none">
+                    <input type="number" id="rTurns" placeholder="Turns" class="p-2 border rounded-lg outline-none">
+                    <input type="text" id="rWeight" placeholder="वजन (Weight)" class="p-2 border rounded-lg font-bold text-blue-800">
+                    <input type="text" id="rLength" placeholder="Length" class="p-2 border rounded-lg outline-none">
                 </div>
 
-                <div class="col-span-2 bg-green-50 p-3 rounded-xl border border-green-100 grid grid-cols-2 gap-3 shadow-inner">
-                    <p class="col-span-2 text-green-700 font-bold text-sm border-b border-green-200">Starting Coil (स्टार्टिंग)</p>
-                    <input type="text" id="sSwg" placeholder="SWG (गेज)" class="p-2 border rounded-lg outline-none">
-                    <input type="number" id="sTurns" placeholder="Turns (टर्न्स)" class="p-2 border rounded-lg outline-none">
-                    <input type="text" id="sWeight" placeholder="वजन (Weight g/kg)" class="p-2 border border-green-300 rounded-lg outline-none font-bold text-green-800">
-                    <input type="text" id="sLength" placeholder="Coil Length" class="p-2 border rounded-lg outline-none">
+                <div class="col-span-2 bg-green-50 p-3 rounded-xl border border-green-100 grid grid-cols-2 gap-3">
+                    <p class="col-span-2 text-green-700 font-bold text-sm border-b">Starting Coil</p>
+                    <input type="text" id="sSwg" placeholder="SWG" class="p-2 border rounded-lg outline-none">
+                    <input type="number" id="sTurns" placeholder="Turns" class="p-2 border rounded-lg outline-none">
+                    <input type="text" id="sWeight" placeholder="वजन (Weight)" class="p-2 border rounded-lg font-bold text-green-800">
+                    <input type="text" id="sLength" placeholder="Length" class="p-2 border rounded-lg outline-none">
                 </div>
 
                 <div class="col-span-2">
-                    <label class="block text-xs font-bold text-gray-500 mb-1">📷 फोटो (Optional)</label>
                     <input type="file" id="photoFile" accept="image/*" class="w-full text-xs text-gray-500">
                 </div>
             </div>
 
             <div class="flex gap-3 mt-8">
-                <button onclick="saveData()" id="saveBtn" class="flex-grow bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 rounded-xl shadow-lg transition active:scale-95">डेटा सेव करें</button>
+                <button onclick="saveData()" id="saveBtn" class="flex-grow bg-orange-600 text-white font-bold py-4 rounded-xl shadow-lg transition active:scale-95">सेव और बैकअप करें</button>
                 <button onclick="resetForm()" id="cancelBtn" class="hidden bg-gray-500 text-white px-6 py-4 rounded-xl font-bold">रद्द करें</button>
             </div>
 
@@ -81,12 +80,26 @@
         </div>
     </div>
 
-    <script>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getFirestore, collection, addDoc, getDocs, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        // आपका Firebase Config (जो आपने पहले बनाया था)
+        const firebaseConfig = {
+            apiKey: "AIzaSyC3Wf33kaSXOQIFgifJGXmNYsq6CiQ8SN4",
+            authDomain: "winding-data-storage.firebaseapp.com",
+            projectId: "winding-data-storage",
+            storageBucket: "winding-data-storage.firebasestorage.app",
+            messagingSenderId: "557392139530",
+            appId: "1:557392139530:web:62124a5a2f44c98e4a16f3"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const fbDb = getFirestore(app);
+
+        // IndexedDB Logic
         let db;
-        let currentImage = "";
-        
-        // Version Updated to 6 for Weight Column
-        const request = indexedDB.open("WindingProDB_New", 6);
+        const request = indexedDB.open("WindingSyncDB", 7);
 
         request.onupgradeneeded = (e) => {
             db = e.target.result;
@@ -97,7 +110,7 @@
 
         request.onsuccess = (e) => {
             db = e.target.result;
-            searchData();
+            window.searchData();
         };
 
         const toBase64 = file => new Promise((resolve, reject) => {
@@ -110,10 +123,10 @@
         window.saveData = async () => {
             const id = document.getElementById('editId').value;
             const name = document.getElementById('itemName').value.trim();
-            if(!name) { alert("नाम ज़रूर लिखें!"); return; }
+            if(!name) return alert("नाम भरें!");
 
             const file = document.getElementById('photoFile').files[0];
-            let imageBase64 = currentImage; 
+            let imageBase64 = window.currentImage || ""; 
             if (file) imageBase64 = await toBase64(file);
 
             const record = {
@@ -133,18 +146,80 @@
                 sWeight: document.getElementById('sWeight').value,
                 sLength: document.getElementById('sLength').value,
                 img: imageBase64,
-                date: new Date().toLocaleString('hi-IN')
+                date: new Date().toLocaleString('hi-IN'),
+                synced: false
             };
 
+            // 1. Mobile (IndexedDB) में सेव करें
             const tx = db.transaction("records", "readwrite");
             const store = tx.objectStore("records");
-            
-            let query = id ? store.put({...record, id: parseInt(id)}) : store.add(record);
+            let dbRequest;
+            if(id) {
+                record.id = parseInt(id);
+                dbRequest = store.put(record);
+            } else {
+                dbRequest = store.add(record);
+            }
 
-            query.onsuccess = () => {
-                alert("सुरक्षित हुआ!");
-                resetForm();
-                searchData();
+            dbRequest.onsuccess = async (e) => {
+                const finalId = id || e.target.result;
+                alert("मोबाइल में सेव हुआ!");
+                
+                // 2. Firebase (Google) पर बैकअप की कोशिश करें
+                if (navigator.onLine) {
+                    try {
+                        // फोटो के बिना बैकअप करें (ताकि स्टोरेज जल्दी न भरे) या पूरी फोटो के साथ
+                        await setDoc(doc(fbDb, "winding_backup", finalId.toString()), record);
+                        const tx2 = db.transaction("records", "readwrite");
+                        record.synced = true;
+                        tx2.objectStore("records").put(record);
+                        console.log("गूगल बैकअप सफल!");
+                    } catch (err) {
+                        console.error("बैकअप फेल:", err);
+                    }
+                }
+                
+                window.resetForm();
+                window.searchData();
+            };
+        };
+
+        window.searchData = () => {
+            if(!db) return;
+            const term = document.getElementById('searchInput').value.toLowerCase();
+            const tx = db.transaction("records", "readonly");
+            tx.objectStore("records").getAll().onsuccess = (e) => {
+                const resultsDiv = document.getElementById('results');
+                resultsDiv.innerHTML = "";
+                e.target.result.reverse().forEach(d => {
+                    if(d.name.toLowerCase().includes(term)) {
+                        resultsDiv.innerHTML += `
+                            <div class="bg-white border-2 border-gray-100 rounded-2xl p-4 shadow-sm mb-4">
+                                <div class="flex justify-between mb-2">
+                                    <h3 class="font-bold text-orange-700">${d.name} ${d.synced ? '✅' : '⏳'}</h3>
+                                    <div class="flex gap-4">
+                                        <button onclick="editData(${d.id})" class="text-blue-500">✏️</button>
+                                        <button onclick="deleteData(${d.id})" class="text-red-400">❌</button>
+                                    </div>
+                                </div>
+                                <div class="grid grid-cols-2 text-[11px] text-gray-500 border-b pb-1">
+                                    <p>Slot: ${d.slots} | Stamp: ${d.stamping}</p>
+                                    <p>ID/OD: ${d.idSize}/${d.odSize}</p>
+                                </div>
+                                <div class="grid grid-cols-2 gap-2 mt-2 text-[11px]">
+                                    <div class="bg-blue-50 p-2 rounded">
+                                        <p class="font-bold">RUNNING</p>
+                                        <p>W: ${d.rWeight} | L: ${d.rLength}</p>
+                                    </div>
+                                    <div class="bg-green-50 p-2 rounded">
+                                        <p class="font-bold">STARTING</p>
+                                        <p>W: ${d.sWeight} | L: ${d.sLength}</p>
+                                    </div>
+                                </div>
+                                ${d.img ? `<img src="${d.img}" class="mt-2 w-full h-32 object-cover rounded-lg">` : ''}
+                            </div>`;
+                    }
+                });
             };
         };
 
@@ -168,9 +243,8 @@
                 document.getElementById('sTurns').value = d.sTurns;
                 document.getElementById('sWeight').value = d.sWeight || "";
                 document.getElementById('sLength').value = d.sLength;
-                currentImage = d.img || "";
-                
-                document.getElementById('saveBtn').innerText = "अपडेट करें";
+                window.currentImage = d.img || "";
+                document.getElementById('saveBtn').innerText = "Update & Backup";
                 document.getElementById('cancelBtn').classList.remove('hidden');
                 window.scrollTo({top: 0, behavior: 'smooth'});
             };
@@ -179,7 +253,28 @@
         window.resetForm = () => {
             document.getElementById('editId').value = "";
             document.querySelectorAll('input').forEach(i => i.type !== 'hidden' && i.type !== 'file' && (i.value = ""));
-            document.getElementById('photoFile').value = "";
+            document.getElementById('saveBtn').innerText = "सेव और बैकअप करें";
+            document.getElementById('cancelBtn').classList.add('hidden');
+            window.currentImage = "";
+        };
+
+        window.deleteData = (id) => {
+            if(confirm("डिलीट करें?")) {
+                db.transaction("records", "readwrite").objectStore("records").delete(id).onsuccess = () => window.searchData();
+            }
+        };
+
+        window.exportData = () => {
+            db.transaction("records", "readonly").objectStore("records").getAll().onsuccess = (e) => {
+                const blob = new Blob([JSON.stringify(e.target.result)], { type: "application/json" });
+                const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+                a.download = `Winding_Backup.json`; a.click();
+            };
+        };
+    </script>
+</body>
+</html>
+9le').value = "";
             document.getElementById('saveBtn').innerText = "डेटा सेव करें";
             document.getElementById('cancelBtn').classList.add('hidden');
             currentImage = "";
