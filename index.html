@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Winding Diary - Maa Bhagawati Electrical</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="bg-gray-100 pb-20">
+
+    <div class="header-bg p-4 text-white sticky top-0 z-40 shadow-lg flex justify-between items-center bg-orange-600">
+        <div>
+            <h1 class="text-xl font-bold uppercase tracking-tight">Winding Master</h1>
+            <p class="text-[10px] opacity-80">Maa Bhagawati Electrical</p>
+        </div>
+        <button onclick="openForm()" class="bg-white text-orange-600 px-5 py-2 rounded-full font-bold text-sm shadow-md active:scale-95 transition">+ Add New</button>
+    </div>
+
+    <div class="p-4">
+        <div class="bg-white border-2 border-gray-200 rounded-full flex items-center px-4 shadow-sm focus-within:border-orange-400 transition">
+            <input type="text" id="searchInput" onkeyup="renderList()" placeholder="मोटर का नाम सर्च करें..." class="w-full p-3 bg-transparent outline-none text-sm">
+            <span class="text-gray-400">🔍</span>
+        </div>
+    </div>
+
+    <div id="motorList" class="px-4 space-y-3">
+        </div>
+
+    <div id="viewModal" class="modal">
+        <div class="bg-white rounded-t-3xl sm:rounded-2xl max-w-lg mx-auto overflow-hidden relative mt-20">
+            <button onclick="closeModal('viewModal')" class="absolute top-4 right-4 bg-gray-100 rounded-full p-2 text-gray-600">✕</button>
+            <div id="modalContent" class="p-6"></div>
+        </div>
+    </div>
+
+    <div id="formModal" class="modal">
+        <div class="bg-white rounded-t-3xl sm:rounded-2xl max-w-lg mx-auto p-6 relative mt-10">
+            <button onclick="closeModal('formModal')" class="absolute top-4 right-4 text-2xl text-gray-400">✕</button>
+            <h2 class="text-xl font-bold mb-4 border-b pb-2 text-gray-800">नया डेटा भरें</h2>
+            <input type="hidden" id="editId">
+            
+            <div class="grid grid-cols-2 gap-3 max-h-[65vh] overflow-y-auto p-1 custom-scroll">
+                <div class="col-span-2">
+                    <input type="text" id="itemName" placeholder="Motor/Fan Name" class="form-input">
+                </div>
+                <input type="text" id="idSize" placeholder="Inner Dia (ID)" class="form-input">
+                <input type="text" id="odSize" placeholder="Outer Dia (OD)" class="form-input">
+                <input type="text" id="stamping" placeholder="Stamping" class="form-input">
+                <input type="number" id="slots" placeholder="Slots" class="form-input">
+                <input type="text" id="pitch" placeholder="Pitch" class="form-input">
+                <select id="wireType" class="form-input bg-white font-bold">
+                    <option value="Copper">Copper</option>
+                    <option value="Aluminum">Aluminum</option>
+                </select>
+
+                <div class="col-span-2 bg-blue-50 p-3 rounded-xl border border-blue-100 grid grid-cols-2 gap-2">
+                    <p class="col-span-2 text-blue-700 font-bold text-xs uppercase">Running Coil</p>
+                    <input type="text" id="rSwg" placeholder="SWG" class="small-input">
+                    <input type="number" id="rTurns" placeholder="Turns" class="small-input">
+                    <input type="text" id="rWeight" placeholder="Weight" class="small-input font-bold text-blue-700">
+                    <input type="text" id="rLength" placeholder="Length" class="small-input">
+                </div>
+
+                <div class="col-span-2 bg-green-50 p-3 rounded-xl border border-green-100 grid grid-cols-2 gap-2">
+                    <p class="col-span-2 text-green-700 font-bold text-xs uppercase">Starting Coil</p>
+                    <input type="text" id="sSwg" placeholder="SWG" class="small-input">
+                    <input type="number" id="sTurns" placeholder="Turns" class="small-input">
+                    <input type="text" id="sWeight" placeholder="Weight" class="small-input font-bold text-green-700">
+                    <input type="text" id="sLength" placeholder="Length" class="small-input">
+                </div>
+                <div class="col-span-2">
+                    <label class="text-[10px] font-bold text-gray-400">PHOTO</label>
+                    <input type="file" id="photoFile" accept="image/*" class="w-full text-xs mt-1">
+                </div>
+            </div>
+            <button onclick="saveData()" class="w-full mt-6 bg-orange-600 text-white font-bold py-4 rounded-2xl shadow-lg active:scale-95 transition">Save Entry 💾</button>
+        </div>
+    </div>
+
+    <div class="fixed bottom-0 left-0 right-0 bg-white border-t p-3 flex gap-3 shadow-2xl">
+        <button onclick="exportData()" class="flex-grow bg-gray-100 text-gray-700 py-3 rounded-xl text-xs font-bold">Backup (Save File)</button>
+        <button onclick="document.getElementById('importFile').click()" class="flex-grow bg-gray-100 text-gray-700 py-3 rounded-xl text-xs font-bold">Import (Load File)</button>
+        <input type="file" id="importFile" class="hidden" onchange="importData(event)">
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
