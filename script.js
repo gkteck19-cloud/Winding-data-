@@ -102,6 +102,12 @@ function showDetails(id) {
         document.getElementById('detailsModal').classList.remove('hidden');
     };
 }
+// showDetails फंक्शन के अंदर डिटेल्स कंटेंट में इसे बदलें:
+<div class="flex gap-4 mt-6">
+    <button onclick="editMotor(${m.id})" class="flex-grow bg-blue-600 text-white py-3 rounded-xl font-bold uppercase text-xs">🛠 Edit Data</button>
+    <button onclick="deleteData(${m.id})" class="bg-red-500/20 text-red-500 px-6 py-3 rounded-xl font-bold uppercase text-xs">🗑 Delete</button>
+</div>
+
 
 function deleteData(id) {
     if(confirm("डिलीट?")) {
