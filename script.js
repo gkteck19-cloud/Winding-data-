@@ -2,8 +2,8 @@ let db;
 const DB_NAME = "MaaBhagawatiDB";
 const STORE_NAME = "motors";
 
-// डेटाबेस खोलना (Version 8)
-const request = indexedDB.open(DB_NAME, 8);
+// डेटाबेस वर्शन 9 (ताकि सब कुछ फ्रेश रहे)
+const request = indexedDB.open(DB_NAME, 9);
 
 request.onupgradeneeded = (e) => {
     db = e.target.result;
@@ -17,7 +17,7 @@ request.onsuccess = (e) => {
     loadMotors();
 };
 
-// फॉर्म कंट्रोल
+// 1. फॉर्म कंट्रोल (Add/Edit Mode)
 function openForm() {
     document.getElementById('windingForm').reset();
     document.getElementById('editId').value = "";
@@ -29,11 +29,166 @@ function openForm() {
 function closeForm() { document.getElementById('entryModal').classList.add('hidden'); }
 function closeDetails() { document.getElementById('detailsModal').classList.add('hidden'); }
 
-// 🛠 एडिट फंक्शन (पूरी तरह फिक्स किया गया)
+// 2. डेटा सेव और अपडेट फंक्शन
+document.getElementById('windingForm').onsubmit = async (e) => {
+    e.preventDefault();
+    
+    const editId = document.getElementById('editId').value;
+    const file = document.getElementById('photoInput').files[0];
+    let base64 = "";
+
+    if (file) {
+        base64 = await new Promise(resolve => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(reader.result);
+            reader.readAsDataURL(file);
+        });
+    }
+
+    const motorData = {
+        name: document.getElementById('motorName').value,
+        idSize: document.getElementById('idSize').value,
+        odSize: document.getElementById('odSize').value,
+        stamping: document.getElementById('stamping').value,
+        slots: document.getElementById('slots').value,
+        wireType: document.getElementById('wireType').value,
+        running: {
+            swg: document.getElementById('rSWG').value,
+            turns: document.getElementById('rTurns').value,
+            weight: document.getElementById('rWeight').value,
+            length: document.getElementById('rLength').value
+        },
+        starting: {
+            swg: document.getElementById('sSWG').value,
+            turns: document.getElementById('sTurns').value,
+            weight: document.getElementById('sWeight').value,
+            length: document.getElementById('sLength').value
+        }
+    };
+
+    const tx = db.transaction(STORE_NAME, "readwrite");
+    const store = tx.objectStore(STORE_NAME);
+
+    if (editId) {
+        motorData.id = parseInt(editId);
+        // अगर फोटो नहीं बदली, तो पुरानी फोटो को सुरक्षित रखना
+        const getOld = store.get(motorData.id);
+        getOld.onsuccess = () => {
+            motorData.pic = base64 || getOld.result.pic || "";
+            store.put(motorData).onsuccess = () => finishSave();
+        };
+    } else {
+        motorData.pic = base64;
+        store.add(motorData).onsuccess = () => finishSave();
+    }
+
+    function finishSave() {
+        alert("डेटा सुरक्षित हुआ!");
+        closeForm();
+        loadMotors();
+    }
+};
+
+// 3. लिस्ट लोड फंक्शन
+function loadMotors() {
+    const list = document.getElementById('motorList');
+    if (!list) return;
+    list.innerHTML = "";
+    const store = db.transaction(STORE_NAME, "readonly").objectStore(STORE_NAME);
+    store.openCursor().onsuccess = (e) => {
+        const cursor = e.target.result;
+        if (cursor) {
+            const m = cursor.value;
+            list.innerHTML += `
+                <div class="card p-4 rounded-xl shadow-lg flex justify-between items-center" onclick="showDetails(${m.id})">
+                    <div>
+                        <h3 class="font-bold text-orange-400 uppercase text-lg">${m.name}</h3>
+                        <p class="text-[10px] text-slate-400 font-bold uppercase mt-1">स्लॉट: ${m.slots || '-'} | ${m.wireType || '-'}</p>
+                    </div>
+                    <span class="text-orange-500/50 text-2xl font-bold">❯</span>
+                </div>`;
+            cursor.continue();
+        }
+    };
+}
+
+// 4. एडिट फंक्शन (Data Fill Logic)
 function editMotor(id) {
-    const transaction = db.transaction([STORE_NAME], "readonly");
-    const store = transaction.objectStore(STORE_NAME);
-    const getRequest = store.get(id);
+    db.transaction(STORE_NAME, "readonly").objectStore(STORE_NAME).get(id).onsuccess = (e) => {
+        const m = e.target.result;
+        if (!m) return;
+
+        document.getElementById('editId').value = m.id;
+        document.getElementById('motorName').value = m.name;
+        document.getElementById('idSize').value = m.idSize || "";
+        document.getElementById('odSize').value = m.odSize || "";
+        document.getElementById('stamping').value = m.stamping || "";
+        document.getElementById('slots').value = m.slots || "";
+        document.getElementById('wireType').value = m.wireType || "Copper";
+
+        // रनिंग और स्टार्टिंग डेटा भरना
+        document.getElementById('rSWG').value = m.running?.swg || "";
+        document.getElementById('rTurns').value = m.running?.turns || "";
+        document.getElementById('rWeight').value = m.running?.weight || "";
+        document.getElementById('rLength').value = m.running?.length || "";
+        document.getElementById('sSWG').value = m.starting?.swg || "";
+        document.getElementById('sTurns').value = m.starting?.turns || "";
+        document.getElementById('sWeight').value = m.starting?.weight || "";
+        document.getElementById('sLength').value = m.starting?.length || "";
+
+        document.getElementById('formTitle').innerText = "डेटा सुधारें";
+        document.getElementById('saveBtn').innerText = "अपडेट करें";
+        
+        closeDetails();
+        document.getElementById('entryModal').classList.remove('hidden');
+    };
+}
+
+// 5. बैकअप फंक्शन (Export & Import)
+function exportData() {
+    db.transaction(STORE_NAME, "readonly").objectStore(STORE_NAME).getAll().onsuccess = (e) => {
+        const blob = new Blob([JSON.stringify(e.target.result)], {type: "application/json"});
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = `Winding_Master_Backup_${new Date().toLocaleDateString()}.json`;
+        a.click();
+    };
+}
+
+function importData(event) {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+        try {
+            const data = JSON.parse(e.target.result);
+            const tx = db.transaction(STORE_NAME, "readwrite");
+            const store = tx.objectStore(STORE_NAME);
+            data.forEach(m => { delete m.id; store.add(m); });
+            tx.oncomplete = () => { 
+                alert("बैकअप लोड हुआ!"); 
+                location.reload(); 
+            };
+        } catch(err) { alert("गलत फाइल!"); }
+    };
+    reader.readAsText(event.target.files[0]);
+}
+
+// 6. सर्च और डिलीट
+function searchMotor() {
+    let f = document.getElementById('searchInput').value.toUpperCase();
+    document.querySelectorAll('.card').forEach(c => {
+        c.style.display = c.innerText.toUpperCase().includes(f) ? "" : "none";
+    });
+}
+
+function deleteData(id) {
+    if(confirm("डिलीट करें?")) {
+        db.transaction(STORE_NAME, "readwrite").objectStore(STORE_NAME).delete(id).onsuccess = () => {
+            closeDetails(); loadMotors();
+        };
+    }
+}
+
+// डिटेल्स दिखाने का लॉजिक (showDetails) पहले जैसा ही रहेगा।
 
     getRequest.onsuccess = (e) => {
         const m = e.target.result;
