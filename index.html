@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Winding Master Pro - Maa Bhagwati Electrical</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Mukta:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="p-4 pb-32">
+
+    <header class="text-center mb-6">
+        <h1 class="text-3xl font-bold text-orange-500 tracking-tighter">Winding Master</h1>
+        <p class="text-[10px] text-slate-500 uppercase tracking-widest">Maa Bhagwati Electrical</p>
+    </header>
+
+    <div class="mb-6 sticky top-2 z-10">
+        <input type="text" id="searchInput" placeholder="डाटा सर्च करें..." class="input-field shadow-2xl" onkeyup="searchMotor()">
+    </div>
+
+    <div id="motorList" class="space-y-3">
+        </div>
+
+    <button onclick="openForm()" class="fixed bottom-24 right-6 w-16 h-16 bg-orange-600 rounded-full shadow-2xl text-4xl flex items-center justify-center z-40 active:scale-90 transition text-white">+</button>
+
+    <div class="fixed bottom-0 left-0 right-0 bg-slate-900/90 backdrop-blur-md p-4 flex gap-3 border-t border-slate-800 z-40">
+        <button onclick="exportData()" class="flex-grow bg-slate-800 text-white py-3 rounded-xl font-bold text-xs border border-slate-700">💾 Backup</button>
+        <button onclick="document.getElementById('importFile').click()" class="flex-grow bg-slate-800 text-white py-3 rounded-xl font-bold text-xs border border-slate-700">📥 Load File</button>
+        <input type="file" id="importFile" class="hidden" accept=".json" onchange="importData(event)">
+    </div>
+
+    <div id="entryModal" class="fixed inset-0 modal-bg hidden z-50 flex items-center justify-center p-4">
+        <div class="bg-slate-900 w-full max-w-lg rounded-3xl p-6 overflow-y-auto max-h-[90vh] shadow-2xl border border-slate-800">
+            <div class="flex justify-between items-center mb-6 border-b border-slate-800 pb-3">
+                <h2 class="text-xl font-bold text-orange-500">नई एंट्री जोड़ें</h2>
+                <button onclick="closeForm()" class="text-slate-500 text-2xl">✕</button>
+            </div>
+            <form id="windingForm" class="space-y-4 text-sm">
+                <input type="text" id="motorName" placeholder="मोटर/पंखे का नाम" class="input-field" required>
+                <div class="grid grid-cols-2 gap-3">
+                    <input type="text" id="idSize" placeholder="ID Size" class="input-field">
+                    <input type="text" id="stamping" placeholder="Stamping" class="input-field">
+                </div>
+                
+                <div class="bg-slate-800/50 p-4 rounded-2xl border border-slate-700">
+                    <label class="block text-slate-400 text-[10px] uppercase font-bold mb-2 tracking-widest">Motor Photo</label>
+                    <input type="file" id="photoInput" accept="image/*" class="w-full text-xs text-slate-500">
+                </div>
+                
+                <div class="grid grid-cols-2 gap-3">
+                    <div class="bg-blue-900/10 p-3 rounded-2xl border border-blue-500/20">
+                        <p class="text-blue-400 font-bold mb-3 uppercase text-[10px]">Running</p>
+                        <input type="text" id="rSWG" placeholder="SWG" class="input-field mb-2">
+                        <input type="text" id="rTurns" placeholder="Turns" class="input-field mb-2">
+                        <input type="text" id="rLength" placeholder="Length" class="input-field">
+                    </div>
+                    <div class="bg-green-900/10 p-3 rounded-2xl border border-green-500/20">
+                        <p class="text-green-400 font-bold mb-3 uppercase text-[10px]">Starting</p>
+                        <input type="text" id="sSWG" placeholder="SWG" class="input-field mb-2">
+                        <input type="text" id="sTurns" placeholder="Turns" class="input-field mb-2">
+                        <input type="text" id="sLength" placeholder="Length" class="input-field">
+                    </div>
+                </div>
+
+                <button type="submit" class="w-full bg-orange-600 text-white py-4 rounded-2xl font-bold shadow-lg mt-4">डेटा सुरक्षित करें</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="detailsModal" class="fixed inset-0 modal-bg hidden z-50 flex items-center justify-center p-0 md:p-4">
+        <div id="detailsContent" class="bg-slate-950 w-full max-w-lg h-full md:h-auto md:rounded-3xl overflow-hidden shadow-2xl relative">
+            </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
