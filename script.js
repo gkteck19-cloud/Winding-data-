@@ -145,3 +145,90 @@ function searchMotor() {
         c.style.display = c.innerText.toUpperCase().includes(f) ? "" : "none";
     });
 }
+// Edit Function - इसे script.js में कहीं भी पेस्ट करें
+function editMotor(id) {
+    const tx = db.transaction("motors", "readonly");
+    const store = tx.objectStore("motors");
+    
+    store.get(id).onsuccess = (e) => {
+        const m = e.target.result;
+        
+        // फॉर्म में पुराना डेटा भरना
+        document.getElementById('motorName').value = m.name;
+        document.getElementById('idSize').value = m.idSize || "";
+        document.getElementById('stamping').value = m.stamping || "";
+        
+        document.getElementById('rSWG').value = m.running.swg || "";
+        document.getElementById('rTurns').value = m.running.turns || "";
+        document.getElementById('rLength').value = m.running.length || "";
+        
+        document.getElementById('sSWG').value = m.starting.swg || "";
+        document.getElementById('sTurns').value = m.starting.turns || "";
+        document.getElementById('sLength').value = m.starting.length || "";
+
+        // हम 'save' बटन के व्यवहार को बदलेंगे ताकि वह नया बनाने के बजाय पुराने को अपडेट करे
+        const form = document.getElementById('windingForm');
+        
+        // पुराने सबमिट इवेंट को हटाकर नया अपडेट वाला इवेंट जोड़ना
+        form.onsubmit = async (event) => {
+            event.preventDefault();
+            
+            const file = document.getElementById('photoInput').files[0];
+            let base64 = m.pic; // पुरानी फोटो रखना अगर नई नहीं चुनी गई
+
+            if(file) {
+                base64 = await new Promise(resolve => {
+                    const reader = new FileReader();
+                    reader.onload = () => resolve(reader.result);
+                    reader.readAsDataURL(file);
+                });
+            }
+
+            const updatedData = {
+                id: id, // पुरानी ID ही इस्तेमाल करें
+                name: document.getElementById('motorName').value,
+                idSize: document.getElementById('idSize').value,
+                stamping: document.getElementById('stamping').value,
+                running: { 
+                    swg: document.getElementById('rSWG').value, 
+                    turns: document.getElementById('rTurns').value, 
+                    length: document.getElementById('rLength').value 
+                },
+                starting: { 
+                    swg: document.getElementById('sSWG').value, 
+                    turns: document.getElementById('sTurns').value, 
+                    length: document.getElementById('sLength').value 
+                },
+                pic: base64
+            };
+
+            const updateTx = db.transaction("motors", "readwrite");
+            updateTx.objectStore("motors").put(updatedData); // .put() पुराने डेटा को अपडेट कर देता है
+            
+            updateTx.oncomplete = () => {
+                alert("डाटा अपडेट हो गया!");
+                closeForm();
+                closeDetails();
+                loadMotors();
+                // फॉर्म को वापस 'Add New' मोड में सेट करना
+                resetFormToNormal();
+            };
+        };
+
+        closeDetails(); // डिटेल्स वाला पर्दा बंद करें
+        openForm();     // फॉर्म वाला पर्दा खोलें
+        document.querySelector('#entryModal h2').innerText = "डाटा सुधारें"; // टाइटल बदलें
+    };
+}
+
+// फॉर्म को वापस सामान्य मोड में लाने के लिए
+function resetFormToNormal() {
+    const form = document.getElementById('windingForm');
+    document.querySelector('#entryModal h2').innerText = "नई एंट्री जोड़ें";
+    
+    form.onsubmit = async (e) => {
+        // यहाँ वही ओरिजिनल 'save' वाला कोड रहेगा जो script.js में पहले से है
+        // पेज रिफ्रेश करने पर यह अपने आप ठीक हो जाएगा
+        location.reload(); 
+    };
+}
