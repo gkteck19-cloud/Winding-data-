@@ -1,7 +1,7 @@
 let db;
 let currentTab = "motors";
 
-// डेटाबेस सेटअप - पुराना क्रैश न हो इसलिए एक फ्रेश और नया नाम
+// एक बिलकुल नया डेटाबेस ताकि पुराने क्रैश वाले डेटा से परेशानी न हो
 const request = indexedDB.open("MaaBhagwatiFinalStore", 1);
 
 request.onupgradeneeded = (e) => {
@@ -19,7 +19,6 @@ request.onsuccess = (e) => {
     renderCurrentTab(); 
 };
 
-// टैब बदलने का लॉजिक
 function switchTab(tabName) {
     currentTab = tabName;
     const mBtn = document.getElementById("tabMotorsBtn");
@@ -43,7 +42,6 @@ function renderCurrentTab() {
     else loadCustomers();
 }
 
-// सही टैब के हिसाब से सही फॉर्म खोलना
 function openCurrentForm() {
     if(currentTab === "motors") {
         document.getElementById('motorForm').reset();
@@ -64,7 +62,6 @@ function openCurrentForm() {
 
 function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
 
-// कस्टमर फॉर्म में मोटर चुनने वाली ड्रॉपडाउन लिस्ट बनाना
 function updateMotorDropdown() {
     const select = document.getElementById("cMotorSelect");
     select.innerHTML = '<option value="">-- मोटर चुनें (डायरी से) --</option>';
@@ -77,7 +74,6 @@ function updateMotorDropdown() {
     };
 }
 
-// मोटर सेलेक्ट करते ही उसका वजन अपने आप बॉक्स में भरना
 function autoFillWeight() {
     const select = document.getElementById("cMotorSelect");
     const selectedOption = select.options[select.selectedIndex];
@@ -87,9 +83,7 @@ function autoFillWeight() {
     }
 }
 
-// ================= MOTOR DIARY LOGIC =================
-
-// मोटर का डुप्लीकेट नाम और कंपनी रोकने के लिए चेक
+// ================= MOTOR LOGIC =================
 function checkMotorDuplicate(name, company) {
     return new Promise((resolve) => {
         let isDuplicate = false;
@@ -108,7 +102,6 @@ function checkMotorDuplicate(name, company) {
     });
 }
 
-// मोटर फॉर्म सबमिट होना
 document.getElementById('motorForm').onsubmit = async (e) => {
     e.preventDefault();
     const files = document.getElementById('photoInput').files;
@@ -123,7 +116,7 @@ document.getElementById('motorForm').onsubmit = async (e) => {
     
     let picsArray = [];
     if(files.length > 0) {
-        const maxFiles = Math.min(files.length, 5); // 5 फोटो लिमिट
+        const maxFiles = Math.min(files.length, 5);
         for(let i=0; i<maxFiles; i++) {
             let base64 = await new Promise(r => {
                 const reader = new FileReader();
@@ -163,7 +156,6 @@ document.getElementById('motorForm').onsubmit = async (e) => {
     tx.oncomplete = () => { closeModal('motorModal'); loadMotors(); };
 };
 
-// स्क्रीन पर मोटर्स लोड करना
 function loadMotors() {
     const list = document.getElementById('dataList');
     list.innerHTML = "";
@@ -184,7 +176,6 @@ function loadMotors() {
     };
 }
 
-// मोटर का पूरा डेटा देखने की स्क्रीन
 function showMotorDetails(id) {
     db.transaction("motors").objectStore("motors").get(id).onsuccess = (e) => {
         const m = e.target.result;
@@ -208,6 +199,187 @@ function showMotorDetails(id) {
                     <div class="bg-slate-700/50 p-2 rounded-lg"><span class="text-slate-400 block">कुल वायर वजन:</span><b>${m.totalWeight || 0}g</b></div>
                 </div>
                 <div class="bg-blue-600/10 p-3 rounded-xl border border-blue-400/20 text-xs mb-3">
+                    <p class="font-bold text-blue-400 mb-1 uppercase text-[10px]">Running Coil</p>
+                    <div class="grid grid-cols-3 gap-1">
+                        <span>G: ${m.running.guage}</span><span>P: ${m.running.pitch}</span><span>R: ${m.running.round}</span>
+                        <span>T: ${m.running.turns}</span><span>L: ${m.running.length}</span><span>W: ${m.running.weight}g</span>
+                    </div>
+                </div>
+                <div class="bg-green-600/10 p-3 rounded-xl border border-green-400/20 text-xs mb-3">
+                    <p class="font-bold text-green-400 mb-1 uppercase text-[10px]">Starting Coil</p>
+                    <div class="grid grid-cols-3 gap-1">
+                        <span>G: ${m.starting.guage}</span><span>P: ${m.starting.pitch}</span><span>R: ${m.starting.round}</span>
+                        <span>T: ${m.starting.turns}</span><span>L: ${m.starting.length}</span><span>W: ${m.starting.weight}g</span>
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-2 mt-4">
+                    <button onclick="editMotorData(${m.id})" class="bg-blue-600 text-white font-bold py-2 rounded-lg text-sm">सुधारें</button>
+                    <button onclick="deleteData('motors', ${m.id})" class="bg-red-500/80 text-white font-bold py-2 rounded-lg text-sm">डिलीट</button>
+                </div>
+            </div>`;
+        document.getElementById('detailsModal').classList.remove('hidden');
+    };
+}
+
+function editMotorData(id) {
+    db.transaction("motors").objectStore("motors").get(id).onsuccess = (e) => {
+        const m = e.target.result;
+        document.getElementById('motorEditId').value = m.id;
+        document.getElementById('motorName').value = m.name;
+        document.getElementById('companyName').value = m.company || "";
+        document.getElementById('stamping').value = m.stamping || "";
+        document.getElementById('idSize').value = m.idSize || "";
+        document.getElementById('odSize').value = m.odSize || "";
+        document.getElementById('slots').value = m.slots || "";
+        document.getElementById('wireType').value = m.wireType || "Copper";
+        document.getElementById('totalWeight').value = m.totalWeight || "";
+        document.getElementById('paperSize').value = m.paperSize || "";
+        document.getElementById('connection').value = m.connection || "";
+        document.getElementById('condenser').value = m.condenser || "";
+        document.getElementById('rGuage').value = m.running.guage;
+        document.getElementById('rPitch').value = m.running.pitch;
+        document.getElementById('rRound').value = m.running.round;
+        document.getElementById('rTurns').value = m.running.turns;
+        document.getElementById('rWeight').value = m.running.weight;
+        document.getElementById('rLength').value = m.running.length;
+        document.getElementById('sGuage').value = m.starting.guage;
+        document.getElementById('sPitch').value = m.starting.pitch;
+        document.getElementById('sRound').value = m.starting.round;
+        document.getElementById('sTurns').value = m.starting.turns;
+        document.getElementById('sWeight').value = m.starting.weight;
+        document.getElementById('sLength').value = m.starting.length;
+        
+        document.getElementById('motorModalTitle').innerText = "मोटर डेटा सुधारें";
+        document.getElementById('motorSaveButton').innerText = "अपडेट करें";
+        closeModal('detailsModal');
+        document.getElementById('motorModal').classList.remove('hidden');
+    };
+}
+
+// ================= CUSTOMER LOGIC =================
+document.getElementById('customerForm').onsubmit = (e) => {
+    e.preventDefault();
+    const editId = document.getElementById('customerEditId').value;
+    
+    const customerData = {
+        customerName: document.getElementById('cName').value,
+        customerMobile: document.getElementById('cMobile').value,
+        jobDate: document.getElementById('cJobDate').value,
+        motorTitle: document.getElementById('cMotorCustom').value || "Unknown Motor",
+        totalWeight: parseFloat(document.getElementById('cMotorWeight').value) || 0,
+        totalCharge: parseFloat(document.getElementById('cTotalCharge').value) || 0,
+        advancePaid: parseFloat(document.getElementById('cAdvancePaid').value) || 0,
+        faultNote: document.getElementById('cFaultNote').value
+    };
+
+    const tx = db.transaction("customers", "readwrite");
+    if(editId) {
+        customerData.id = parseInt(editId);
+        tx.objectStore("customers").put(customerData);
+    } else {
+        tx.objectStore("customers").add(customerData);
+    }
+    tx.oncomplete = () => { closeModal('customerModal'); loadCustomers(); };
+};
+
+function loadCustomers() {
+    const list = document.getElementById('dataList');
+    list.innerHTML = "";
+    db.transaction("customers").objectStore("customers").openCursor().onsuccess = (e) => {
+        const cursor = e.target.result;
+        if(cursor) {
+            const c = cursor.value;
+            const balance = (c.totalCharge || 0) - (c.advancePaid || 0);
+            const balText = balance > 0 ? `<span class="text-red-400 font-bold ml-2">बकाया: ₹${balance}</span>` : `<span class="text-green-400 font-bold ml-2">क्लियर</span>`;
+            
+            list.innerHTML += `
+                <div class="card p-4 rounded-xl shadow-md flex justify-between items-center border-l-green-500" onclick="showCustomerDetails(${c.id})">
+                    <div class="w-full">
+                        <div class="flex justify-between items-start">
+                            <h3 class="data-title font-bold text-green-400 text-lg">${c.customerName}</h3>
+                            <span class="text-[11px] text-slate-500 font-mono">${c.jobDate}</span>
+                        </div>
+                        <p class="text-xs text-slate-300">मोटर: <b>${c.motorTitle}</b> | ${balText}</p>
+                    </div>
+                    <span class="text-slate-600 text-2xl">❯</span>
+                </div>`;
+            cursor.continue();
+        }
+    };
+}
+
+function showCustomerDetails(id) {
+    db.transaction("customers").objectStore("customers").get(id).onsuccess = (e) => {
+        const c = e.target.result;
+        const details = document.getElementById('detailsContent');
+        const rate = parseFloat(document.getElementById('wireRateInput').value) || 0;
+        const wireCost = Math.round((c.totalWeight / 1000) * rate);
+        const balance = c.totalCharge - c.advancePaid;
+
+        let noteHTML = "";
+        if(c.faultNote) {
+            noteHTML = `<div class="bg-red-500/10 p-2 rounded-xl border border-red-500/20 text-xs"><span class="text-red-400 font-bold block">फॉल्ट नोट:</span><p class="italic">` + c.faultNote + `</p></div>`;
+        }
+
+        details.innerHTML = `
+            <div class="content-overlay">
+                <button onclick="closeModal('detailsModal')" class="float-right text-white text-3xl">✕</button>
+                <h2 class="text-2xl font-bold text-green-400 mt-2">${c.customerName}</h2>
+                <p class="text-xs text-slate-400 font-semibold border-b border-slate-700 pb-2 mb-4">मोबाइल: ${c.customerMobile || '-'} | दिनांक: ${c.jobDate}</p>
+                <div class="space-y-3 text-sm">
+                    <p class="text-slate-300">लायी गयी मोटर: <b class="text-white text-base">${c.motorTitle}</b></p>
+                    <div class="grid grid-cols-2 gap-2 bg-slate-900/50 p-3 rounded-xl text-xs">
+                        <div>कुल चार्ज: <b class="text-green-400 text-sm block">₹${c.totalCharge}</b></div>
+                        <div>जमा एडवांस: <b class="text-blue-400 text-sm block">₹${c.advancePaid}</b></div>
+                        <div>बकाया राशि: <b class="${balance > 0 ? 'text-red-400' : 'text-green-400'} text-sm block">₹${balance}</b></div>
+                        <div>तार का वजन / लागत: <b class="text-orange-400 text-sm block">${c.totalWeight}g (₹${wireCost})</b></div>
+                    </div>
+                    ${noteHTML}
+                </div>
+                <div class="grid grid-cols-2 gap-2 mt-6">
+                    <button onclick="editCustomerData(${c.id})" class="bg-blue-600 text-white font-bold py-2 rounded-lg text-sm">सुधारें</button>
+                    <button onclick="deleteData('customers', ${c.id})" class="bg-red-500/80 text-white font-bold py-2 rounded-lg text-sm">डिलीट</button>
+                </div>
+            </div>`;
+        document.getElementById('detailsModal').classList.remove('hidden');
+    };
+}
+
+function editCustomerData(id) {
+    db.transaction("customers").objectStore("customers").get(id).onsuccess = (e) => {
+        const c = e.target.result;
+        document.getElementById('customerEditId').value = c.id;
+        document.getElementById('cName').value = c.customerName;
+        document.getElementById('cMobile').value = c.customerMobile || "";
+        document.getElementById('cJobDate').value = c.jobDate;
+        document.getElementById('cMotorCustom').value = c.motorTitle;
+        document.getElementById('cMotorWeight').value = c.totalWeight || "";
+        document.getElementById('cTotalCharge').value = c.totalCharge || "";
+        document.getElementById('cAdvancePaid').value = c.advancePaid || "";
+        document.getElementById('cFaultNote').value = c.faultNote || "";
+        
+        document.getElementById('customerModalTitle').innerText = "ग्राहक रिकॉर्ड सुधारें";
+        document.getElementById('customerSaveButton').innerText = "अपडेट करें";
+        closeModal('detailsModal');
+        updateMotorDropdown();
+        document.getElementById('customerModal').classList.remove('hidden');
+    };
+}
+
+// ================= GLOBAL TOOLS =================
+function deleteData(storeName, id) {
+    if(confirm("क्या आप वाकई इसे हटाना चाहते हैं?")) {
+        db.transaction(storeName, "readwrite").objectStore(storeName).delete(id).onsuccess = () => {
+            closeModal('detailsModal');
+            renderCurrentTab();
+        };
+    }
+}
+
+function searchData() {
+    let f = document.getElementById('searchInput').value.toUpperCase();
+    document.querySelectorAll('.card').forEach(c => {
+        c.style.display = c.querySelector('.data-titldiv class="bg-blue-600/10 p-3 rounded-xl border border-blue-400/20 text-xs mb-3">
                     <p class="font-bold text-blue-400 mb-1 uppercase text-[10px]">Running Coil</p>
                     <div class="grid grid-cols-3 gap-1">
                         <span>G: ${m.running.guage}</span><span>P: ${m.running.pitch}</span><span>R: ${m.running.round}</span>
