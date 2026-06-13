@@ -18,6 +18,18 @@
         <p class="text-xs text-slate-400 uppercase">Maa Bhagwati Electrical, Sagona</p>
     </header>
 
+    <div class="flex gap-2 mb-4 bg-slate-800 p-1 rounded-xl">
+
+<button id="tabMotorsBtn"
+
+onclick="switchTab('motors')" class="flex-grow py-2.5 rounded-Ig text-sm font-bold bg-orange-500 text-white transition"> मोटर डायरी</button>
+
+<button id="tabCustomersBtn"
+
+onclick="switchTab('customers')" class="flex-grow py-2.5 rounded-lg text-sm font-bold text-slate-400 hover:text-white transition"> कस्टमर रिकॉर्ड</button>
+
+    </div>
+
     <div class="mb-6 sticky top-2 z-10">
         <input type="text" id="searchInput" placeholder="सर्च मोटर (नाम या कंपनी से)..." class="input-field shadow-2xl" onkeyup="searchMotor()">
     </div>
