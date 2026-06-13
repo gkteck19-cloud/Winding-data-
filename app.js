@@ -317,3 +317,56 @@ function searchMotor() {
     });
   }
           
+
+// ग्राहक फॉर्म सबमिट होने पर डेटा सेव करने का फंक्शन
+document.getElementById('customerForm').onsubmit = (e) => {
+    e.preventDefault(); // पेज को रीलोड होने से रोकना
+    
+    const editId = document.getElementById('customerEditId').value;
+    
+    // फॉर्म से सारा डेटा ऑब्जेक्ट में इकट्ठा करना
+    const customerData = {
+        customerName: document.getElementById('cName').value.trim(),
+        customerMobile: document.getElementById('cMobile').value.trim(),
+        jobDate: document.getElementById('cJobDate').value,
+        motorTitle: document.getElementById('cMotorCustom').value.trim() || "Unknown Motor",
+        totalWeight: parseFloat(document.getElementById('cMotorWeight').value) || 0,
+        totalCharge: parseFloat(document.getElementById('cTotalCharge').value) || 0,
+        advancePaid: parseFloat(document.getElementById('cAdvancePaid').value) || 0,
+        faultNote: document.getElementById('cFaultNote').value.trim()
+    };
+
+    // IndexedDB में डेटा लिखना
+    const tx = db.transaction("customers", "readwrite");
+    const store = tx.objectStore("customers");
+
+    if (editId) {
+        // अगर पुराने रिकॉर्ड को सुधार रहे हैं
+        customerData.id = parseInt(editId);
+        store.put(customerData);
+    } else {
+        // अगर बिल्कुल नया रिकॉर्ड जोड़ रहे हैं
+        store.add(customerData);
+    }
+
+    tx.oncomplete = () => {
+        alert("कस्टमर रिकॉर्ड सफलतापूर्वक सुरक्षित हो गया!");
+        closeModal('customerModal'); // फॉर्म बंद करना
+        loadCustomers(); // ग्राहक लिस्ट दोबारा लोड करना
+    };
+    
+    tx.onerror = () => {
+        alert("डेटा सेव करने में कोई गड़बड़ी हुई!");
+    };
+};
+
+// डायरी से सेलेक्ट की गई मोटर का वजन अपने आप भरने के लिए फंक्शन
+function autoFillWeight() {
+    const select = document.getElementById("cMotorSelect");
+    const selectedOption = select.options[select.selectedIndex];
+    if (selectedOption && selectedOption.value !== "") {
+        // मोटर का वजन और नाम इनपुट बॉक्स में ऑटोमैटिक डालना
+        document.getElementById("cMotorWeight").value = selectedOption.getAttribute("data-weight");
+        document.getElementById("cMotorCustom").value = selectedOption.text;
+    }
+}
