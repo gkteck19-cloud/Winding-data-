@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advanced Motor Winding App</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div class="main-container">
+        <header>
+            <h1>⚡ मोटर वर्कशॉप डिजिटल डायरी</h1>
+            <p>कस्टमर रिकॉर्ड और वाइंडिंग डेटाबेस को अलग-अलग मैनेज करें</p>
+        </header>
+
+        <div class="tab-navigation">
+            <button class="tab-btn active" onclick="switchTab('customerSection', this)">👤 कस्टमर रिकॉर्ड</button>
+            <button class="tab-btn" onclick="switchTab('windingSection', this)">⚙️ वाइंडिंग डेटा मास्टर</button>
+        </div>
+
+        <section id="customerSection" class="tab-content active-content">
+            <div class="form-section">
+                <h2>📝 नया कस्टमर जोड़ें</h2>
+                <form id="customerForm">
+                    <div class="row">
+                        <div class="form-group">
+                            <label>कस्टमर का नाम:*</label>
+                            <input type="text" id="custName" required placeholder="राम कुमार">
+                        </div>
+                        <div class="form-group">
+                            <label>मोबाइल नंबर:*</label>
+                            <input type="tel" id="custMobile" required placeholder="9876XXXXXX">
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="form-group">
+                            <label>पता / शहर:</label>
+                            <input type="text" id="custAddress" placeholder="बाजार रोड, वार्ड 5">
+                        </div>
+                        <div class="form-group">
+                            <label>मोटर मॉडल/कंपनी:</label>
+                            <input type="text" id="custMotorModel" placeholder="Crompton 1HP, Kirloskar">
+                        </div>
+                    </div>
+                    <button type="submit" class="btn-submit btn-cust">💾 कस्टमर सेव करें</button>
+                </form>
+            </div>
+
+            <div class="records-section">
+                <h2>🔍 सुरक्षित कस्टमर लिस्ट</h2>
+                <input type="text" id="searchCustomer" oninput="loadCustomers(this.value)" placeholder="नाम या मोबाइल से खोजें...">
+                <div id="customerList" class="records-list"></div>
+            </div>
+        </section>
+
+        <section id="windingSection" class="tab-content">
+            <div class="form-section">
+                <h2>⚙️ नया मोटर वाइंडिंग डेटा दर्ज करें</h2>
+                <form id="windingForm">
+                    <div class="row">
+                        <div class="form-group">
+                            <label>मोटर का नाम / स्लॉट संख्या:*</label>
+                            <input type="text" id="windMotorName" required placeholder="जैसे: Crompton 24 Slots Submersible">
+                        </div>
+                        <div class="form-group">
+                            <label>SWG (वायर गेज):</label>
+                            <input type="text" id="windSwg" placeholder="22 No. / 24 No.">
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="form-group">
+                            <label>टर्न्स (Turns per coil):</label>
+                            <input type="text" id="windTurns" placeholder="60-60-60">
+                        </div>
+                        <div class="form-group">
+                            <label>पिच (Pitch):</label>
+                            <input type="text" id="windPitch" placeholder="1-8, 1-10, 1-12">
+                        </div>
+                    </div>
+
+                    <div class="calculator-box">
+                        <h3>📊 ऑटोमैटिक वायर खर्च कैलकुलेटर</h3>
+                        <div class="row">
+                            <div class="form-group">
+                                <label>कुल स्लॉट्स (Slots):</label>
+                                <input type="number" id="slots" value="24">
+                            </div>
+                            <div class="form-group">
+                                <label>कोर की लम्बाई (Length in mm):</label>
+                                <input type="number" id="coreLength" placeholder="50">
+                            </div>
+                            <div class="form-group">
+                                <label>अंदर का व्यास (Inner Dia in mm):</label>
+                                <input type="number" id="innerDia" placeholder="60">
+                            </div>
+                        </div>
+                        <button type="button" id="calcBtn" class="btn-calc">वज़न का अंदाज़ा लगाएं</button>
+                        <div class="calc-result">
+                            <strong>अनुमानित तार का वज़न:</strong> <input type="number" id="calcWeight" style="width:100px; display:inline; font-weight:bold; color:red;" value="0"> ग्राम
+                        </div>
+                    </div>
+
+                    <div class="photo-section">
+                        <h3>📷 वाइंडिंग/कनेक्शन फोटो अपलोड (अधिकतम 5)</h3>
+                        <input type="file" id="photoUpload" accept="image/*" multiple>
+                        <div id="imagePreviewContainer" class="preview-container"></div>
+                    </div>
+
+                    <button type="submit" class="btn-submit btn-wind">💾 वाइंडिंग डेटाबेस में सेव करें</button>
+                </form>
+            </div>
+
+            <div class="records-section">
+                <h2>🔍 वाइंडिंग डेटाबेस खोजें</h2>
+                <input type="text" id="searchWinding" oninput="loadWindingData(this.value)" placeholder="मोटर नाम या स्लॉट से खोजें...">
+                <div id="windingDataList" class="records-list"></div>
+            </div>
+        </section>
+
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
