@@ -1,1 +1,587 @@
 
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Winding Master Pro - Maa Bhagwati Electrical</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Mukta:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { 
+            font-family: 'Mukta', sans-serif; 
+            background-color: #0f172a; 
+            color: #f8fafc; 
+        }
+        .card { 
+            background-color: #1e293b; 
+            border-left: 4px solid #f97316; 
+            cursor: pointer; 
+        }
+        .input-field, .select-field { 
+            background: #334155; 
+            border: 1px solid #475569; 
+            color: white; 
+            border-radius: 8px; 
+            padding: 10px; 
+            width: 100%; 
+            outline: none; 
+        }
+        .input-field::placeholder {
+            color: #94a3b8;
+        }
+        .modal-bg { 
+            background: rgba(0, 0, 0, 0.95); 
+            backdrop-filter: blur(8px); 
+        }
+        .bg-pic-slider { 
+            width: 100%; 
+            height: 220px; 
+            object-fit: cover; 
+            border-radius: 12px; 
+            margin-bottom: 8px; 
+        }
+        .content-overlay { 
+            position: relative; 
+            z-index: 10; 
+            background: #1e293b; 
+            padding: 20px; 
+            border-radius: 16px; 
+            height: 100%; 
+            overflow-y: auto; 
+        }
+    </style>
+</head>
+<body class="p-4 pb-36">
+
+    <header class="text-center mb-4">
+        <h1 class="text-3xl font-bold text-orange-500">Winding Master</h1>
+        <p class="text-xs text-slate-400 uppercase">Maa Bhagwati Electrical, Sagona</p>
+    </header>
+
+    <div class="flex gap-2 mb-3 bg-slate-800 p-1 rounded-xl">
+        <button id="tabMotorsBtn" onclick="switchTab('motors')" class="flex-grow py-2.5 rounded-lg text-sm font-bold bg-orange-500 text-white transition">📖 मोटर डायरी</button>
+        <button id="tabCustomersBtn" onclick="switchTab('customers')" class="flex-grow py-2.5 rounded-lg text-sm font-bold text-slate-400 hover:text-white transition">👤 कस्टमर रिकॉर्ड</button>
+    </div>
+
+    <div class="grid grid-cols-2 gap-2 mb-4">
+        <button onclick="openSpecificForm('motors')" class="bg-blue-600/30 hover:bg-blue-600/50 border border-blue-500/40 text-blue-300 py-3 rounded-xl font-bold text-xs text-center shadow-md transition active:scale-95">➕ 📖 नया मोटर डेटा</button>
+        <button onclick="openSpecificForm('customers')" class="bg-green-600/30 hover:bg-green-600/50 border border-green-500/40 text-green-300 py-3 rounded-xl font-bold text-xs text-center shadow-md transition active:scale-95">➕ 👤 नया ग्राहक रिकॉर्ड</button>
+    </div>
+
+    <div class="grid grid-cols-3 gap-2 mb-6 sticky top-2 z-10 bg-slate-900/90 p-1 rounded-xl backdrop-blur-md shadow-lg">
+        <div class="col-span-2">
+            <input type="text" id="searchInput" placeholder="सर्च मोटर (नाम या कंपनी से)..." class="input-field" onkeyup="searchData()">
+        </div>
+        <div>
+            <input type="number" id="wireRateInput" placeholder="वायर रेट ₹/Kg" value="900" class="input-field text-center font-bold text-orange-400" onchange="renderCurrentTab()">
+        </div>
+    </div>
+
+    <div id="dataList" class="space-y-4"></div>
+
+    <div class="fixed bottom-0 left-0 right-0 bg-slate-900 p-4 flex gap-3 border-t border-slate-700 z-40 shadow-2xl">
+        <button onclick="exportAllData()" class="flex-grow bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-xl font-bold text-sm shadow-md transition active:scale-95">💾 पूरा बैकअप लें</button>
+        <button onclick="document.getElementById('importFile').click()" class="flex-grow bg-green-600 hover:bg-green-700 text-white py-3 rounded-xl font-bold text-sm shadow-md transition active:scale-95">📥 फाइल लोड करें</button>
+        <input type="file" id="importFile" class="hidden" accept=".json" onchange="importAllData(event)">
+    </div>
+
+    <div id="motorModal" class="fixed inset-0 modal-bg hidden z-50 flex items-center justify-center p-4">
+        <div class="bg-slate-800 w-full max-w-lg rounded-2xl p-6 overflow-y-auto max-h-[90vh] shadow-2xl border border-slate-700">
+            <h2 id="motorModalTitle" class="text-2xl font-bold mb-4 text-orange-400 border-b border-slate-700 pb-2">नया मोटर डेटा जोड़ें</h2>
+            <form id="motorForm" class="space-y-4 text-sm">
+                <input type="hidden" id="motorEditId" value="">
+                
+                <div class="grid grid-cols-2 gap-2">
+                    <input type="text" id="motorName" placeholder="मोटर का नाम (उदा. 1HP Pump)" class="input-field" required>
+                    <input type="text" id="companyName" placeholder="कंपनी का नाम (उदा. Crompton)" class="input-field">
+                </div>
+
+                <div class="grid grid-cols-3 gap-2">
+                    <input type="text" id="stamping" placeholder="Core Size (स्टांपिंग)" class="input-field">
+                    <input type="text" id="idSize" placeholder="ID (अंदर का)" class="input-field">
+                    <input type="text" id="odSize" placeholder="OD (बाहर का)" class="input-field">
+                </div>
+
+                <div class="grid grid-cols-2 gap-2">
+                    <input type="number" id="slots" placeholder="कुल स्लॉट नंबर" class="input-field">
+                    <select id="wireType" class="select-field">
+                        <option value="Copper">Copper (तांबा)</option>
+                        <option value="Aluminium">Aluminium (एल्युमिनियम)</option>
+                    </select>
+                </div>
+                
+                <div class="bg-blue-900/20 p-3 rounded-xl border border-blue-500/30">
+                    <p class="text-blue-400 font-bold mb-2 uppercase text-[10px]">Running Data (रनिंग)</p>
+                    <div class="grid grid-cols-3 gap-2 mb-2">
+                        <input type="text" id="rGuage" placeholder="Guage (SWG)" class="input-field">
+                        <input type="text" id="rPitch" placeholder="Pitch" class="input-field">
+                        <input type="text" id="rRound" placeholder="Round" class="input-field">
+                    </div>
+                    <div class="grid grid-cols-3 gap-2">
+                        <input type="text" id="rTurns" placeholder="Total Turns" class="input-field">
+                        <input type="text" id="rLength" placeholder="Coil लंबाई" class="input-field">
+                        <input type="text" id="rWeight" placeholder="Coil वजन (g)" class="input-field">
+                    </div>
+                </div>
+
+                <div class="bg-green-900/20 p-3 rounded-xl border border-green-500/30">
+                    <p class="text-green-400 font-bold mb-2 uppercase text-[10px]">Starting Data (स्टार्टिंग)</p>
+                    <div class="grid grid-cols-3 gap-2 mb-2">
+                        <input type="text" id="sGuage" placeholder="Guage (SWG)" class="input-field">
+                        <input type="text" id="sPitch" placeholder="Pitch" class="input-field">
+                        <input type="text" id="sRound" placeholder="Round" class="input-field">
+                    </div>
+                    <div class="grid grid-cols-3 gap-2">
+                        <input type="text" id="sTurns" placeholder="Total Turns" class="input-field">
+                        <input type="text" id="sLength" placeholder="Coil लंबाई" class="input-field">
+                        <input type="text" id="sWeight" placeholder="Coil वजन (g)" class="input-field">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-2 bg-slate-700/40 p-3 rounded-xl border border-slate-600">
+                    <input type="text" id="paperSize" placeholder="पेपर की लंबाई/ऊंचाई" class="input-field">
+                    <input type="number" id="totalWeight" placeholder="कुल वायर वजन (ग्राम)" class="input-field">
+                    <input type="text" id="connection" placeholder="कनेक्शन (उदा. Series)" class="input-field">
+                    <input type="text" id="condenser" placeholder="कंडेंसर (उदा. 10 mfd)" class="input-field">
+                </div>
+
+                <div>
+                    <label class="block text-slate-400 text-xs mb-1">मोटर की 5 फोटो चुनें (एक साथ सेलेक्ट करें):</label>
+                    <input type="file" id="photoInput" accept="image/*" multiple class="input-field">
+                </div>
+
+                <div class="flex gap-3 pt-2">
+                    <button type="button" onclick="closeModal('motorModal')" class="w-1/3 bg-slate-700 py-3 rounded-xl">कैंसिल</button>
+                    <button type="submit" id="motorSaveButton" class="w-2/3 bg-orange-500 py-3 rounded-xl font-bold">मोटर सेव करें</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="customerModal" class="fixed inset-0 modal-bg hidden z-50 flex items-center justify-center p-4">
+        <div class="bg-slate-800 w-full max-w-lg rounded-2xl p-6 overflow-y-auto max-h-[90vh] shadow-2xl border border-slate-700">
+            <h2 id="customerModalTitle" class="text-2xl font-bold mb-4 text-orange-400 border-b border-slate-700 pb-2">नया ग्राहक रिकॉर्ड जोड़ें</h2>
+            <form id="customerForm" class="space-y-4 text-sm">
+                <input type="hidden" id="customerEditId" value="">
+                
+                <div class="bg-slate-700/30 p-3 rounded-xl border border-slate-600/50 space-y-2">
+                    <p class="text-orange-400 font-bold uppercase text-[10px]">ग्राहक की सामान्य जानकारी</p>
+                    <div class="grid grid-cols-2 gap-2">
+                        <input type="text" id="cName" placeholder="ग्राहक का नाम" class="input-field" required>
+                        <input type="text" id="cMobile" placeholder="मोबाइल नंबर" class="input-field">
+                    </div>
+                    <input type="date" id="cJobDate" class="input-field" required>
+                </div>
+
+                <div class="bg-slate-700/30 p-3 rounded-xl border border-slate-600/50 space-y-2">
+                    <p class="text-blue-400 font-bold uppercase text-[10px]">मोटर और बिल का विवरण</p>
+                    <div class="grid grid-cols-2 gap-2">
+                        <select id="cMotorSelect" class="select-field" onchange="autoFillWeight()">
+                            <option value="">-- मोटर चुनें (डायरी से) --</option>
+                        </select>
+                        <input type="text" id="cMotorCustom" placeholder="या अलग से मोटर का नाम लिखें" class="input-field">
+                    </div>
+                    <div class="grid grid-cols-3 gap-2">
+                        <input type="number" id="cMotorWeight" placeholder="वायर वजन (g)" class="input-field">
+                        <input type="number" id="cTotalCharge" placeholder="कुल चार्ज ₹" class="input-field text-green-400 font-bold">
+                        <input type="number" id="cAdvancePaid" placeholder="एडवांस ₹" class="input-field text-blue-400 font-bold">
+                    </div>
+                    <input type="text" id="cFaultNote" placeholder="शिकायत / विशेष फॉल्ट नोट" class="input-field">
+                </div>
+
+                <div class="flex gap-3 pt-2">
+                    <button type="button" onclick="closeModal('customerModal')" class="w-1/3 bg-slate-700 py-3 rounded-xl">कैंसिल</button>
+                    <button type="submit" id="customerSaveButton" class="w-2/3 bg-orange-500 py-3 rounded-xl font-bold">रिकॉर्ड सेव करें</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <div id="detailsModal" class="fixed inset-0 modal-bg hidden z-50 flex items-center justify-center p-4">
+        <div id="detailsContent" class="bg-slate-800 w-full max-w-lg rounded-2xl overflow-hidden shadow-2xl relative max-h-[95vh] flex flex-col"></div>
+    </div>
+    
+    <script>
+        var db;
+        var currentTab = "motors";
+
+        // एकदम फ्रेश डेटाबेस वर्जन ताकि ब्राउज़र क्रैश पुराना कैशे साफ़ हो जाए
+        var request = indexedDB.open("MaaBhagwatiGoldenStore", 1);
+
+        request.onupgradeneeded = function(e) {
+            db = e.target.result;
+            if (!db.objectStoreNames.contains("motors")) {
+                db.createObjectStore("motors", { keyPath: "id", autoIncrement: true });
+            }
+            if (!db.objectStoreNames.contains("customers")) {
+                db.createObjectStore("customers", { keyPath: "id", autoIncrement: true });
+            }
+        };
+
+        request.onsuccess = function(e) { 
+            db = e.target.result; 
+            renderCurrentTab(); 
+        };
+
+        function switchTab(tabName) {
+            currentTab = tabName;
+            var mBtn = document.getElementById("tabMotorsBtn");
+            var cBtn = document.getElementById("tabCustomersBtn");
+            
+            if(tabName === "motors") {
+                mBtn.className = "flex-grow py-2.5 rounded-lg text-sm font-bold bg-orange-500 text-white transition";
+                cBtn.className = "flex-grow py-2.5 rounded-lg text-sm font-bold text-slate-400 hover:text-white transition";
+                document.getElementById("searchInput").placeholder = "सर्च मोटर (नाम या कंपनी से)...";
+            } else {
+                cBtn.className = "flex-grow py-2.5 rounded-lg text-sm font-bold bg-orange-500 text-white transition";
+                mBtn.className = "flex-grow py-2.5 rounded-lg text-sm font-bold text-slate-400 hover:text-white transition";
+                document.getElementById("searchInput").placeholder = "सर्च ग्राहक (नाम, मोबाइल या मोटर)...";
+                updateMotorDropdown();
+            }
+            renderCurrentTab();
+        }
+
+        function renderCurrentTab() {
+            if(currentTab === "motors") loadMotors();
+            else loadCustomers();
+        }
+
+        // डायरेक्ट बटनों द्वारा फॉर्म ओपन करने का लॉजिक
+        function openSpecificForm(type) {
+            switchTab(type); // पहले सही टैब पर ले जाएं
+            if(type === "motors") {
+                document.getElementById('motorForm').reset();
+                document.getElementById('motorEditId').value = "";
+                document.getElementById('motorModalTitle').innerText = "नया मोटर डेटा जोड़ें";
+                document.getElementById('motorSaveButton').innerText = "मोटर सेव करें";
+                document.getElementById('motorModal').classList.remove('hidden');
+            } else {
+                document.getElementById('customerForm').reset();
+                document.getElementById('customerEditId').value = "";
+                document.getElementById('cJobDate').valueAsDate = new Date();
+                document.getElementById('customerModalTitle').innerText = "नया ग्राहक रिकॉर्ड जोड़ें";
+                document.getElementById('customerSaveButton').innerText = "रिकॉर्ड सेव करें";
+                updateMotorDropdown();
+                document.getElementById('customerModal').classList.remove('hidden');
+            }
+        }
+
+        // पुराने प्लस बटन को सपोर्ट करने के लिए बैकअप फंक्शन
+        function openCurrentForm() {
+            openSpecificForm(currentTab);
+        }
+
+        function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
+
+        function updateMotorDropdown() {
+            var select = document.getElementById("cMotorSelect");
+            select.innerHTML = '<option value="">-- मोटर चुनें (डायरी से) --</option>';
+            
+            db.transaction("motors").objectStore("motors").getAll().onsuccess = function(e) {
+                var list = e.target.result;
+                list.forEach(function(m) {
+                    var companyStr = m.company ? ' (' + m.company + ')' : '';
+                    select.innerHTML += '<option value="' + m.id + '" data-weight="' + (m.totalWeight || 0) + '">' + m.name + companyStr + '</option>';
+                });
+            };
+        }
+
+        function autoFillWeight() {
+            var select = document.getElementById("cMotorSelect");
+            var selectedOption = select.options[select.selectedIndex];
+            if(selectedOption && selectedOption.value !== "") {
+                document.getElementById("cMotorWeight").value = selectedOption.getAttribute("data-weight");
+                document.getElementById("cMotorCustom").value = selectedOption.text;
+            }
+        }
+
+        // ================= MOTOR DIARY LOGIC =================
+        function checkMotorDuplicate(name, company) {
+            return new Promise(function(resolve) {
+                var isDuplicate = false;
+                db.transaction("motors").objectStore("motors").openCursor().onsuccess = function(e) {
+                    var cursor = e.target.result;
+                    if (cursor) {
+                        var compVal = cursor.value.company || "";
+                        if (cursor.value.name.trim().toUpperCase() === name.trim().toUpperCase() && 
+                            compVal.trim().toUpperCase() === company.trim().toUpperCase()) {
+                            isDuplicate = true;
+                            resolve(true);
+                            return;
+                        }
+                        cursor.continue();
+                    } else { resolve(isDuplicate); }
+                };
+            });
+        }
+
+        document.getElementById('motorForm').onsubmit = async function(e) {
+            e.preventDefault();
+            var files = document.getElementById('photoInput').files;
+            var editId = document.getElementById('motorEditId').value;
+            var mName = document.getElementById('motorName').value;
+            var cName = document.getElementById('companyName').value;
+
+            if (!editId) {
+                var dup = await checkMotorDuplicate(mName, cName);
+                if (dup) {
+                    alert("❌ यह मोटर डायरी में पहले से सेव्ड है!");
+                    return;
+                }
+            }
+            
+            var picsArray = [];
+            if(files.length > 0) {
+                var maxFiles = Math.min(files.length, 5);
+                for(var i=0; i<maxFiles; i++) {
+                    var base64 = await new Promise(function(r) {
+                        var reader = new FileReader();
+                        reader.onload = function() { r(reader.result); };
+                        reader.readAsDataURL(files[i]);
+                    });
+                    picsArray.push(base64);
+                }
+            }
+
+            var motorData = {
+                name: mName, company: cName,
+                stamping: document.getElementById('stamping').value,
+                idSize: document.getElementById('idSize').value,
+                odSize: document.getElementById('odSize').value,
+                slots: document.getElementById('slots').value,
+                wireType: document.getElementById('wireType').value,
+                totalWeight: parseFloat(document.getElementById('totalWeight').value) || 0,
+                paperSize: document.getElementById('paperSize').value,
+                connection: document.getElementById('connection').value,
+                condenser: document.getElementById('condenser').value,
+                running: { guage: document.getElementById('rGuage').value, pitch: document.getElementById('rPitch').value, round: document.getElementById('rRound').value, turns: document.getElementById('rTurns').value, length: document.getElementById('rLength').value, weight: document.getElementById('rWeight').value },
+                starting: { guage: document.getElementById('sGuage').value, pitch: document.getElementById('sPitch').value, round: document.getElementById('sRound').value, turns: document.getElementById('sTurns').value, length: document.getElementById('sLength').value, weight: document.getElementById('sWeight').value }
+            };
+
+            var tx = db.transaction("motors", "readwrite");
+            var store = tx.objectStore("motors");
+            if(editId) {
+                motorData.id = parseInt(editId);
+                store.get(motorData.id).onsuccess = function(ev) {
+                    motorData.pics = picsArray.length > 0 ? picsArray : (ev.target.result.pics || []);
+                    store.put(motorData);
+                };
+            } else {
+                motorData.pics = picsArray;
+                store.add(motorData);
+            }
+            tx.oncomplete = function() { closeModal('motorModal'); loadMotors(); };
+        };
+
+        function loadMotors() {
+            var list = document.getElementById('dataList');
+            list.innerHTML = "";
+            db.transaction("motors").objectStore("motors").openCursor().onsuccess = function(e) {
+                var cursor = e.target.result;
+                if(cursor) {
+                    var m = cursor.value;
+                    var companyStr = m.company ? ' (' + m.company + ')' : '';
+                    list.innerHTML += '<div class="card p-4 rounded-xl shadow-md flex justify-between items-center" onclick="showMotorDetails(' + m.id + ')"><div><h3 class="data-title font-bold text-orange-400 uppercase text-lg">' + m.name + companyStr + '</h3><p class="text-xs text-slate-400 italic">स्लॉट: ' + (m.slots || '-') + ' | वायर: ' + (m.wireType || '-') + ' | वजन: ' + (m.totalWeight || 0) + 'g</p></div><span class="text-slate-600 text-2xl">❯</span></div>';
+                    cursor.continue();
+                }
+            };
+        }
+
+        function showMotorDetails(id) {
+            db.transaction("motors").objectStore("motors").get(id).onsuccess = function(e) {
+                var m = e.target.result;
+                var details = document.getElementById('detailsContent');
+                var imgHTML = "";
+                if(m.pics && m.pics.length > 0) {
+                    imgHTML = '<div class="flex gap-2 overflow-x-auto p-4 bg-slate-900/50">';
+                    m.pics.forEach(function(p) {
+                        var divider = m.pics.length > 1 ? 1.2 : 1;
+                        imgHTML += '<img src="' + p + '" class="bg-pic-slider" style="width:calc(100%/' + divider + ');flex-shrink:0;">';
+                    });
+                    imgHTML += '</div>';
+                }
+                details.innerHTML = '<div class="content-overlay"><button onclick="closeModal(\'detailsModal\')" class="float-right text-white text-3xl">✕</button><h2 class="text-2xl font-bold text-orange-500 uppercase mt-2">' + m.name + '</h2><p class="text-xs text-slate-400 font-semibold border-b border-slate-700 pb-2 mb-3">कंपनी: ' + (m.company || '-') + '</p>' + imgHTML + '<div class="grid grid-cols-2 gap-2 mb-3 text-xs"><div class="bg-slate-700/50 p-2 rounded-lg"><span class="text-slate-400 block">Stator Core:</span><b>' + (m.stamping || '-') + '</b></div><div class="bg-slate-700/50 p-2 rounded-lg"><span class="text-slate-400 block">ID / OD:</span><b>' + (m.idSize || '-') + ' / ' + (m.odSize || '-') + '</b></div><div class="bg-slate-700/50 p-2 rounded-lg"><span class="text-slate-400 block">Slots / Wire:</span><b>' + (m.slots || '-') + ' / ' + (m.wireType || '-') + '</b></div><div class="bg-slate-700/50 p-2 rounded-lg"><span class="text-slate-400 block">कुल वायर वजन:</span><b>' + (m.totalWeight || 0) + 'g</b></div></div><div class="bg-blue-600/10 p-3 rounded-xl border border-blue-400/20 text-xs mb-3"><p class="font-bold text-blue-400 mb-1 uppercase text-[10px]">Running Coil</p><div class="grid grid-cols-3 gap-1"><span>G: ' + m.running.guage + '</span><span>P: ' + m.running.pitch + '</span><span>R: ' + m.running.round + '</span><span>T: ' + m.running.turns + '</span><span>L: ' + m.running.length + '</span><span>W: ' + m.running.weight + 'g</span></div></div><div class="bg-green-600/10 p-3 rounded-xl border border-green-400/20 text-xs mb-3"><p class="font-bold text-green-400 mb-1 uppercase text-[10px]">Starting Coil</p><div class="grid grid-cols-3 gap-1"><span>G: ' + m.starting.guage + '</span><span>P: ' + m.starting.pitch + '</span><span>R: ' + m.starting.round + '</span><span>T: ' + m.starting.turns + '</span><span>L: ' + m.starting.length + '</span><span>W: ' + m.starting.weight + 'g</span></div></div><div class="grid grid-cols-2 gap-2 mt-4"><button onclick="editMotorData(' + m.id + ')" class="bg-blue-600 text-white font-bold py-2 rounded-lg text-sm">सुधारें</button><button onclick="deleteData(\'motors\', ' + m.id + ')" class="bg-red-500/80 text-white font-bold py-2 rounded-lg text-sm">डिलीट</button></div></div>';
+                document.getElementById('detailsModal').classList.remove('hidden');
+            };
+        }
+
+        function editMotorData(id) {
+            db.transaction("motors").objectStore("motors").get(id).onsuccess = function(e) {
+                var m = e.target.result;
+                document.getElementById('motorEditId').value = m.id;
+                document.getElementById('motorName').value = m.name;
+                document.getElementById('companyName').value = m.company || "";
+                document.getElementById('stamping').value = m.stamping || "";
+                document.getElementById('idSize').value = m.idSize || "";
+                document.getElementById('odSize').value = m.odSize || "";
+                document.getElementById('slots').value = m.slots || "";
+                document.getElementById('wireType').value = m.wireType || "Copper";
+                document.getElementById('totalWeight').value = m.totalWeight || "";
+                document.getElementById('paperSize').value = m.paperSize || "";
+                document.getElementById('connection').value = m.connection || "";
+                document.getElementById('condenser').value = m.condenser || "";
+                document.getElementById('rGuage').value = m.running.guage;
+                document.getElementById('rPitch').value = m.running.pitch;
+                document.getElementById('rRound').value = m.running.round;
+                document.getElementById('rTurns').value = m.running.turns;
+                document.getElementById('rWeight').value = m.running.weight;
+                document.getElementById('rLength').value = m.running.length;
+                document.getElementById('sGuage').value = m.starting.guage;
+                document.getElementById('sPitch').value = m.starting.pitch;
+                document.getElementById('sRound').value = m.starting.round;
+                document.getElementById('sTurns').value = m.starting.turns;
+                document.getElementById('sWeight').value = m.starting.weight;
+                document.getElementById('sLength').value = m.starting.length;
+                
+                document.getElementById('motorModalTitle').innerText = "मोटर डेटा सुधारें";
+                document.getElementById('motorSaveButton').innerText = "अपडेट करें";
+                closeModal('detailsModal');
+                document.getElementById('motorModal').classList.remove('hidden');
+            };
+        }
+
+        // ================= CUSTOMER RECORD LOGIC =================
+        document.getElementById('customerForm').onsubmit = function(e) {
+            e.preventDefault();
+            var editId = document.getElementById('customerEditId').value;
+            
+            var customerData = {
+                customerName: document.getElementById('cName').value,
+                customerMobile: document.getElementById('cMobile').value,
+                jobDate: document.getElementById('cJobDate').value,
+                motorTitle: document.getElementById('cMotorCustom').value || "Unknown Motor",
+                totalWeight: parseFloat(document.getElementById('cMotorWeight').value) || 0,
+                totalCharge: parseFloat(document.getElementById('cTotalCharge').value) || 0,
+                advancePaid: parseFloat(document.getElementById('cAdvancePaid').value) || 0,
+                faultNote: document.getElementById('cFaultNote').value
+            };
+
+            var tx = db.transaction("customers", "readwrite");
+            var store = tx.objectStore("customers");
+            if(editId) {
+                customerData.id = parseInt(editId);
+                store.put(customerData);
+            } else {
+                store.add(customerData);
+            }
+            tx.oncomplete = function() { closeModal('customerModal'); loadCustomers(); };
+        };
+
+        function loadCustomers() {
+            var list = document.getElementById('dataList');
+            list.innerHTML = "";
+            db.transaction("customers").objectStore("customers").openCursor().onsuccess = function(e) {
+                var cursor = e.target.result;
+                if(cursor) {
+                    var c = cursor.value;
+                    var balance = (c.totalCharge || 0) - (c.advancePaid || 0);
+                    var balText = balance > 0 ? '<span class="text-red-400 font-bold ml-2">बकाया: ₹' + balance + '</span>' : '<span class="text-green-400 font-bold ml-2">क्लियर</span>';
+                    
+                    list.innerHTML += '<div class="card p-4 rounded-xl shadow-md flex justify-between items-center border-l-green-500" onclick="showCustomerDetails(' + c.id + ')"><div class="w-full"><div class="flex justify-between items-start"><h3 class="data-title font-bold text-green-400 text-lg">' + c.customerName + '</h3><span class="text-[11px] text-slate-500 font-mono">' + c.jobDate + '</span></div><p class="text-xs text-slate-300">मोटर: <b>' + c.motorTitle + '</b> | ' + balText + '</p></div><span class="text-slate-600 text-2xl">❯</span></div>';
+                    cursor.continue();
+                }
+            };
+        }
+
+        function showCustomerDetails(id) {
+            db.transaction("customers").objectStore("customers").get(id).onsuccess = function(e) {
+                var c = e.target.result;
+                var details = document.getElementById('detailsContent');
+                var rate = parseFloat(document.getElementById('wireRateInput').value) || 0;
+                var wireCost = Math.round((c.totalWeight / 1000) * rate);
+                var balance = c.totalCharge - c.advancePaid;
+
+                var noteHTML = "";
+                if(c.faultNote) {
+                    noteHTML = '<div class="bg-red-500/10 p-2 rounded-xl border border-red-500/20 text-xs"><span class="text-red-400 font-bold block">फॉल्ट नोट:</span><p class="italic">' + c.faultNote + '</p></div>';
+                }
+
+                details.innerHTML = '<div class="content-overlay"><button onclick="closeModal(\'detailsModal\')" class="float-right text-white text-3xl">✕</button><h2 class="text-2xl font-bold text-green-400 mt-2">' + c.customerName + '</h2><p class="text-xs text-slate-400 font-semibold border-b border-slate-700 pb-2 mb-4">मोबाइल: ' + (c.customerMobile || '-') + ' | दिनांक: ' + c.jobDate + '</p><div class="space-y-3 text-sm"><p class="text-slate-300">लायी गयी मोटर: <b class="text-white text-base">' + c.motorTitle + '</b></p><div class="grid grid-cols-2 gap-2 bg-slate-900/50 p-3 rounded-xl text-xs"><div>कुल चार्ज: <b class="text-green-400 text-sm block">₹' + c.totalCharge + '</b></div><div>जमा एडवांस: <b class="text-blue-400 text-sm block">₹' + c.advancePaid + '</b></div><div>बकाया राशि: <b class="' + (balance > 0 ? 'text-red-400' : 'text-green-400') + ' text-sm block">₹' + balance + '</b></div><div>तार का वजन / लागत: <b class="text-orange-400 text-sm block">' + c.totalWeight + 'g (₹' + wireCost + ')</b></div></div>' + noteHTML + '</div><div class="grid grid-cols-2 gap-2 mt-6"><button onclick="editCustomerData(' + c.id + ')" class="bg-blue-600 text-white font-bold py-2 rounded-lg text-sm">सुधारें</button><button onclick="deleteData(\'customers\', ' + c.id + ')" class="bg-red-500/80 text-white font-bold py-2 rounded-lg text-sm">डिलीट</button></div></div>';
+                document.getElementById('detailsModal').classList.remove('hidden');
+            };
+        }
+
+        function editCustomerData(id) {
+            db.transaction("customers").objectStore("customers").get(id).onsuccess = function(e) {
+                var c = e.target.result;
+                document.getElementById('customerEditId').value = c.id;
+                document.getElementById('cName').value = c.customerName;
+                document.getElementById('cMobile').value = c.customerMobile || "";
+                document.getElementById('cJobDate').value = c.jobDate;
+                document.getElementById('cMotorCustom').value = c.motorTitle;
+                document.getElementById('cMotorWeight').value = c.totalWeight || "";
+                document.getElementById('cTotalCharge').value = c.totalCharge || "";
+                document.getElementById('cAdvancePaid').value = c.advancePaid || "";
+                document.getElementById('cFaultNote').value = c.faultNote || "";
+                
+                document.getElementById('customerModalTitle').innerText = "ग्राहक रिकॉर्ड सुधारें";
+                document.getElementById('customerSaveButton').innerText = "अपडेट करें";
+                closeModal('detailsModal');
+                updateMotorDropdown();
+                document.getElementById('customerModal').classList.remove('hidden');
+            };
+        }
+
+        // ================= GLOBAL TOOLS =================
+        function deleteData(storeName, id) {
+            if(confirm("क्या आप वाकई इसे हटाना चाहते हैं?")) {
+                db.transaction(storeName, "readwrite").objectStore(storeName).delete(id).onsuccess = function() {
+                    closeModal('detailsModal');
+                    renderCurrentTab();
+                };
+            }
+        }
+
+        function searchData() {
+            var f = document.getElementById('searchInput').value.toUpperCase();
+            document.querySelectorAll('.card').forEach(function(c) {
+                var isVisible = c.querySelector('.data-title').innerText.toUpperCase().includes(f) || c.innerText.toUpperCase().includes(f);
+                c.style.display = isVisible ? "" : "none";
+            });
+        }
+
+        function exportAllData() {
+            var backup = {};
+            db.transaction("motors").objectStore("motors").getAll().onsuccess = function(e1) {
+                backup.motors = e1.target.result;
+                db.transaction("customers").objectStore("customers").getAll().onsuccess = function(e2) {
+                    backup.customers = e2.target.result;
+                    var blob = new Blob([JSON.stringify(backup)], {type: "application/json"});
+                    var a = document.createElement('a');
+                    a.href = URL.createObjectURL(blob);
+                    
+                    var dateStr = new Date().toLocaleDateString().replace(/\//g, "-");
+                    a.download = "Maa_Bhagwati_Full_Backup_" + dateStr + ".json";
+                    a.click();
+                };
+            };
+        }
+
+        function importAllData(event) {
+            var reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    var data = JSON.parse(e.target.result);
+                    var txM = db.transaction("motors", "readwrite");
+                    if(data.motors) {
+                        data.motors.forEach(function(m) { delete m.id; txM.objectStore("motors").add(m); });
+                    }
+                    
+                    txM.oncomplete = function() {
+                        var txC = db.transaction("customers", "readwrite");
+                        if(data.customers) {
+                            data.customers.forEach(function(c) { delete c.id; txC.objectStore("customers").add(c); });
+                        }
+                        txC.oncomplete = function() { 
+                            alert("पूरा डेटा सफलतापूर्वक रीस्टोर हो गया!"); 
+                            renderCurrentTab(); 
+                        };
+                    };
+                } catch(err) { alert("गलत फाइल फॉर्मेट!"); }
+            };
+            reader.readAsText(event.target.files[0]);
+        }
+    </script>
+</body>
+</html>
