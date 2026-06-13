@@ -63,7 +63,7 @@ document.getElementById('windingForm').onsubmit = async (e) => {
     
     let picsArray = [];
     if(files.length > 0) {
-        const maxFiles = Math.min(files.length, 3);
+        const maxFiles = Math.min(files.length, 5);
         for(let i=0; i<maxFiles; i++) {
             let base64 = await new Promise(resolve => {
                 const reader = new FileReader();
