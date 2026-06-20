@@ -592,7 +592,21 @@
             };
             reader.readAsText(event.target.files[0]);
         }
+                // ऐप लोड होने के बाद स्प्लैश स्क्रीन हटाने का टाइमर लॉजिक
+        window.addEventListener('load', () => {
+            const splash = document.getElementById('splash-screen');
+            
+            // 2 सेकंड (2000ms) तक स्प्लैश स्क्रीन दिखेगी
+            setTimeout(() => {
+                splash.classList.add('fade-out');
+                
+                // फ़ेड-आउट एनिमेशन खत्म होने के बाद स्क्रीन को छुपाना
+                setTimeout(() => {
+                    splash.classList.add('hidden');
+                }, 800);
+            }, 2000); 
+        });
+        
     </script>    
-    <script src="script.js"></script>
 </body>
 </html>
