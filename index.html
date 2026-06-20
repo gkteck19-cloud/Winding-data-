@@ -607,6 +607,26 @@
             }, 2000); 
         });
         
+        window.addEventListener('load', () => {
+    const splash = document.getElementById('splash-screen');
+    const mainContent = document.getElementById('app-main-content');
+    
+    // 2 सेकंड तक स्प्लैश स्क्रीन दिखेगी
+    setTimeout(() => {
+        splash.classList.add('fade-out');
+        
+        // स्प्लैश स्क्रीन गायब होते ही मुख्य स्क्रीन को दिखाएं
+        if (mainContent) {
+            mainContent.classList.remove('hidden');
+        }
+        
+        // फ़ेड-आउट एनिमेशन पूरा होने के बाद स्प्लैश स्क्रीन को डोम से छुपाना
+        setTimeout(() => {
+            splash.classList.add('hidden');
+        }, 800);
+    }, 2000); 
+});
+        
     </script>    
 </body>
 </html>
