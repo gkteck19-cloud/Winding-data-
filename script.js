@@ -161,3 +161,18 @@ window.deleteWinding = function(id) {
 // Initial Load
 loadCustomers();
 loadWindingData();
+
+// ऐप लोड होने के बाद स्प्लैश स्क्रीन हटाने का टाइमर लॉजिक
+window.addEventListener('load', () => {
+    const splash = document.getElementById('splash-screen');
+    
+    // 2 सेकंड (2000ms) तक स्प्लैश स्क्रीन होल्ड रहेगी
+    setTimeout(() => {
+        splash.classList.add('fade-out');
+        
+        // फ़ेड-आउट एनिमेशन खत्म होने के बाद स्क्रीन को पूरी तरह छुपाना
+        setTimeout(() => {
+            splash.classList.add('hidden');
+        }, 800);
+    }, 2000); 
+});
